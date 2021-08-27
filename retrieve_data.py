@@ -30,7 +30,7 @@ def retrieve_this_weeks_fights():
     options.add_argument('--disable-web-security')
     options.add_argument('--allow-running-insecure-content')
     options.add_argument("--disable-setuid-sandbox")
-    driver = webdriver.Chrome(executable_path = '../../../Desktop/chromedriver', options = options)
+    driver = webdriver.Chrome(executable_path = '../chromedriver', options = options)
     driver.get('http://ufcstats.com/statistics/events/completed')
     upcoming_card_data = pd.DataFrame(columns = ['name', 'weight', 'reach', 'age', 'slpm', 'sapm', 'td_avg', 'sub_avg', 'strk_acc', 'strk_def', 'td_acc',
                                                 'td_def', 'wins', 'losses'])
@@ -105,7 +105,6 @@ def append_fight_data(this_weeks_fights):
     mma_data = mma_data.append(this_weeks_fights)
     mma_data.reset_index(inplace = True, drop = True)
     mma_data.to_csv('mma_data.csv')
-    print(mma_data.tail())
     return
 
 
