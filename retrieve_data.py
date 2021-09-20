@@ -10,6 +10,7 @@ import pandas as pd
 import re
 from bs4 import BeautifulSoup
 import datetime as dt
+from webdriver_manager.chrome import ChromeDriverManager
 
 def retrieve_this_weeks_fights():
 
@@ -30,7 +31,7 @@ def retrieve_this_weeks_fights():
     options.add_argument('--disable-web-security')
     options.add_argument('--allow-running-insecure-content')
     options.add_argument("--disable-setuid-sandbox")
-    driver = webdriver.Chrome(executable_path = '../chromedriver', options = options)
+    driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.get('http://ufcstats.com/statistics/events/completed')
     upcoming_card_data = pd.DataFrame(columns = ['name', 'weight', 'reach', 'age', 'slpm', 'sapm', 'td_avg', 'sub_avg', 'strk_acc', 'strk_def', 'td_acc',
                                                 'td_def', 'wins', 'losses'])
