@@ -13,6 +13,7 @@ from keras.utils.vis_utils import model_to_dot
 
 # Calling in data, splitting, and scaling
 data = pd.read_csv('mma_data.csv', index_col=0)
+data.drop(['fighter_1', 'fighter_2'], axis = 1, inplace = True)
 x, y = data.iloc[:, :-1], data.iloc[:, -1]
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 0)
 scaler = StandardScaler()
