@@ -90,8 +90,7 @@ def retrieve_this_weeks_fights():
     evens.reset_index(drop = True, inplace = True)
     odds = upcoming_card_data.iloc[1::2]
     odds.reset_index(drop = True, inplace = True)
-    final= pd.merge(evens, odds, left_on = evens.index, right_on = odds.index)
-    final.drop('key_0', axis = 1, inplace = True)
+    final= pd.merge(evens, odds, left_index = True, right_index = True)
     final.columns = ['fighter_1', 'weight_1', 'reach_1', 'age_1', 'slpm_1', 'sapm_1', 'td_avg_1', 'sub_avg_1', 
                     'strk_acc_1', 'strk_def_1', 'td_acc_1','td_def_1', 'wins_1', 'losses_1', 'fighter_2', 'weight_2', 
                     'reach_2', 'age_2', 'slpm_2', 'sapm_2', 'td_avg_2', 'sub_avg_2', 'strk_acc_2', 'strk_def_2', 
