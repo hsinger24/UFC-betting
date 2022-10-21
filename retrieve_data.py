@@ -97,11 +97,7 @@ def retrieve_this_weeks_fights():
                     'td_acc_2','td_def_2', 'wins_2', 'losses_2']
     final['result'] = 0
     final['SUB_OVR']= 0
-    final['SUB_1']= 0
-    final['SUB_2']= 0
     final['KO_OVR'] = 0
-    final['KO_1'] = 0
-    final['KO_2'] = 0
     print(final.tail())
     driver.quit()
     return final
