@@ -1,3 +1,6 @@
+##########IMPORTS##########
+
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
@@ -5,12 +8,21 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
+from webdriver_manager.chrome import ChromeDriverManager
+
 import time
 import pandas as pd
 import re
 from bs4 import BeautifulSoup
 import datetime as dt
-from webdriver_manager.chrome import ChromeDriverManager
+import numpy as np
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+
+
+##########FUNCTIONS##########
+
 
 def retrieve_this_weeks_fights():
 
@@ -95,7 +107,7 @@ def retrieve_this_weeks_fights():
                     'strk_acc_1', 'strk_def_1', 'td_acc_1','td_def_1', 'wins_1', 'losses_1', 'fighter_2', 'weight_2', 
                     'reach_2', 'age_2', 'slpm_2', 'sapm_2', 'td_avg_2', 'sub_avg_2', 'strk_acc_2', 'strk_def_2', 
                     'td_acc_2','td_def_2', 'wins_2', 'losses_2']
-    final['result'] = 0
+    final['result'] = -5
     final['SUB_OVR']= 0
     final['KO_OVR'] = 0
     print(final.tail())
@@ -109,8 +121,75 @@ def append_fight_data(this_weeks_fights):
     mma_data.to_csv('mma_data.csv')
     return
 
+def this_weeks_predictions(this_weeks_fights):
+    
+    # Importing data to train RF
+    data = pd.read_csv('mma_data.csv', index_col=0)
+
+    # Filtering out unwanted rows
+    data = data[data.slpm_2 + data.sapm_2 != 0]
+    data = data[data.slpm_1 + data.sapm_1 != 0]
+    data = data[data.result >= 0]
+
+    # Engineering some columns
+    data['reach_diff'] = data.reach_1 - data.reach_2
+    data['age_diff'] = data.age_1 - data.age_2
+    data['slpm_diff'] = data.slpm_1 - data.slpm_2
+    data['sapm_diff'] = data.sapm_1 - data.sapm_2
+    data['td_acc_diff'] = data.td_acc_1 - data.td_acc_2
+    data['td_def_diff'] = data.td_def_1 - data.td_def_2
+    data['td_avg_diff'] = data.td_avg_1 - data.td_avg_2
+    data['sub_avg_diff'] = data.sub_avg_1 - data.sub_avg_2
+    data['strk_acc_diff'] = data.strk_acc_1 - data.strk_acc_2
+    data['strk_def_diff'] = data.strk_def_1 - data.strk_def_2
+    data['wins_diff'] = data.wins_1 - data.wins_2
+    data['losses_diff'] = data.losses_1 - data.losses_2
+    data['win_pct_1'] = data.wins_1/(data.losses_1 + data.wins_1)
+    data['win_pct_2'] = data.wins_2/(data.losses_2 + data.wins_2)
+    data['win_pct_diff'] = data.win_pct_1 - data.win_pct_2
+
+    # Droping unecessary columnns and scaling data
+    x_cols = ['reach_diff', 'age_diff', 'slpm_diff', 'sapm_diff', 'td_acc_diff', 'td_def_diff',
+                'td_avg_diff', 'sub_avg_diff', 'strk_acc_diff', 'strk_def_diff', 'wins_diff',
+                'losses_diff', 'win_pct_diff', 'weight_1']
+    y_col = ['result']
+    x, y = data[x_cols], data[y_col]
+
+    # Creating parameter grid for RF model
+    n_estimators = [int(x) for x in np.linspace(start = 3, stop = 15, num = 13)]
+    max_features = [int(x) for x in np.linspace(start = 3, stop = 10, num = 8)]
+    max_depth = [int(x) for x in np.linspace(start = 1, stop = 10, num = 10)]
+    param_grid = {
+        'n_estimators' : n_estimators,
+        'max_features' : max_features,
+        'max_depth' : max_depth
+    }
+
+    # Running Grid Search
+    grid_search = GridSearchCV(RandomForestClassifier(random_state = 0), param_grid, cv = 4)
+    grid_search.fit(x, y)
+    
+    # Saving best model from grid search
+    rf = grid_search.best_estimator_
+
+    # Preparing prediction data & predicting
+    x_data_pred = this_weeks_fights[x_cols]
+    this_weeks_fights['Prediction_RF'] = rf.predict(x_data_pred)
+
+    # Saving date and predicted data
+    this_weeks_fights['Date'] = dt.date.today()
+    this_weeks_fights.to_csv(f'Predictions/predictions_{dt.date.today()}.csv')
+
+    return
+
+
+##########SCRIPT##########
+
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
 append_fight_data(this_weeks_fights)
+
+# Re-traininng RF model & using it to predict fights
+this_weeks_predictions(this_weeks_fights)
     
