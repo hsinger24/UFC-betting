@@ -18,7 +18,9 @@ import datetime as dt
 import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler
 
 
 ##########FUNCTIONS##########
@@ -151,7 +153,7 @@ def this_weeks_predictions(this_weeks_fights):
     # Droping unecessary columnns and scaling data
     x_cols = ['reach_diff', 'age_diff', 'slpm_diff', 'sapm_diff', 'td_acc_diff', 'td_def_diff',
                 'td_avg_diff', 'sub_avg_diff', 'strk_acc_diff', 'strk_def_diff', 'wins_diff',
-                'losses_diff', 'win_pct_diff', 'weight_1']
+                'losses_diff', 'win_pct_diff', 'weight_1', 'age_1']
     y_col = ['result']
     x, y = data[x_cols], data[y_col]
 
@@ -172,9 +174,28 @@ def this_weeks_predictions(this_weeks_fights):
     # Saving best model from grid search
     rf = grid_search.best_estimator_
 
+    # Scaling data for LR
+
+    scaler = StandardScaler()
+    x = scaler.fit_transform(x)
+
+    # Creating parameter grid for LR model
+    c = [0.001, 0.01, 0.1, 1, 10, 100]
+    param_grid = {
+        'C' : c
+    }
+
+    # Running Grid Search
+    grid_search = GridSearchCV(LogisticRegression(random_state = 0, max_iter = 500), param_grid, cv = 4)
+    grid_search.fit(x, y)
+    
+    # Saving best model from grid search
+    lr = grid_search.best_estimator_
+
     # Preparing prediction data & predicting
     x_data_pred = this_weeks_fights[x_cols]
     this_weeks_fights['Prediction_RF'] = rf.predict(x_data_pred)
+    this_weeks_fights['Prediction_LR'] = lr.predict_proba(x_data_pred)[:, 1]
 
     # Saving date and predicted data
     this_weeks_fights['Date'] = dt.date.today()
