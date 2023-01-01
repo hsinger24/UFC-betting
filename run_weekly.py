@@ -18,10 +18,16 @@ import datetime as dt
 import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils import resample
 
+import gym
+from stable_baselines3 import PPO
+from stable_baselines3 import SAC
+from stable_baselines3.common.vec_env import DummyVecEnv
 
 ##########FUNCTIONS##########
 
@@ -123,8 +129,8 @@ def append_fight_data(this_weeks_fights):
     mma_data.to_csv('mma_data.csv')
     return
 
-def this_weeks_predictions(this_weeks_fights):
-    
+def ml_data_prep(target):
+
     # Importing data to train RF
     data = pd.read_csv('mma_data.csv', index_col=0)
 
@@ -154,48 +160,87 @@ def this_weeks_predictions(this_weeks_fights):
     x_cols = ['reach_diff', 'age_diff', 'slpm_diff', 'sapm_diff', 'td_acc_diff', 'td_def_diff',
                 'td_avg_diff', 'sub_avg_diff', 'strk_acc_diff', 'strk_def_diff', 'wins_diff',
                 'losses_diff', 'win_pct_diff', 'weight_1', 'age_1']
-    y_col = ['result']
-    x, y = data[x_cols], data[y_col]
 
-    # Creating parameter grid for RF model
+    if target == ['result']:
+        y_col = target
+        x, y = data[x_cols], data[y_col]
+    else:
+        x, y = data[x_cols], data[y_col]
+
+        # Upsampling Target
+        x_up, y_up = resample(x[y==1], y[y==1], replace = True, random_state = 0, n_samples = x[y==0].shape[0])
+
+        x = np.vstack((x[y==0], x_up))
+        y = np.hstack((y[y==0], y_up))
+
+    return x, y, x_cols
+
+def create_grid_search(model, param_grid, x, y, cv = 10):
+    # Running Grid Search
+    grid_search = GridSearchCV(function, param_grid, cv = cv)
+    grid_search.fit(x, y)
+    
+    # Outputting results
+    best_model = grid_search.best_estimator_
+    
+    return best_model
+
+def this_weeks_predictions(this_weeks_fights):
+    
+    # Getting x and y for models
+    x, y, x_cols = ml_data_prep(target = ['result'])
+    x_ko, y_ko, x_cols = ml_data_prep(target = 'KO_OVR')
+    x_sub, y_sub, x_cols = ml_data_prep(target = 'SUB_OVR')
+
+    # Prep grid searches
+    # RF
     n_estimators = [int(x) for x in np.linspace(start = 3, stop = 15, num = 13)]
     max_features = [int(x) for x in np.linspace(start = 3, stop = 10, num = 8)]
     max_depth = [int(x) for x in np.linspace(start = 1, stop = 10, num = 10)]
-    param_grid = {
+    param_grid_rf = {
         'n_estimators' : n_estimators,
         'max_features' : max_features,
         'max_depth' : max_depth
     }
-
-    # Running Grid Search
-    grid_search = GridSearchCV(RandomForestClassifier(random_state = 0), param_grid, cv = 4)
-    grid_search.fit(x, y)
-    
-    # Saving best model from grid search
-    rf = grid_search.best_estimator_
-
-    # Scaling data for LR
-
+    # GB
+    n_estimators = [int(x) for x in np.linspace(start = 3, stop = 15, num = 13)]
+    max_features = [int(x) for x in np.linspace(start = 3, stop = 10, num = 8)]
+    max_depth = [int(x) for x in np.linspace(start = 1, stop = 10, num = 10)]
+    param_grid_gb = {
+        'n_estimators' : n_estimators,
+        'max_features' : max_features,
+        'max_depth' : max_depth
+    }
+    # LR
     scaler = StandardScaler()
-    x = scaler.fit_transform(x)
-
-    # Creating parameter grid for LR model
+    x_scaled = scaler.fit_transform(x)
     c = [0.001, 0.01, 0.1, 1, 10, 100]
-    param_grid = {
+    param_grid_lr = {
         'C' : c
     }
-
-    # Running Grid Search
-    grid_search = GridSearchCV(LogisticRegression(random_state = 0, max_iter = 500), param_grid, cv = 4)
-    grid_search.fit(x, y)
     
-    # Saving best model from grid search
-    lr = grid_search.best_estimator_
+    # Saving best winner models from grid searches
+    rf_winner = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x, y = y)
+    gb_winner = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x, y = y)
+    lr_winner = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_lr, cv = 10, x = x_scaled, y = y)
+    rf_ko = create_grid_search(RandomForestClassifier(random_state = 0), param_grid_rf, cv = 10, x = x_ko, y = y_ko)
+    gb_ko = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x_ko, y = y_ko)
+    lr_ko = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_lr, cv = 10, x = x_ko, y = y_ko)
+    rf_sub = create_grid_search(RandomForestClassifier(random_state = 0), param_grid_rf, cv = 10, x = x_sub, y = y_sub)
+    gb_sub = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x_sub, y = y_sub)
+    lr_sub = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_lr, cv = 10, x = x_sub, y = y_sub)
 
     # Preparing prediction data & predicting
     x_data_pred = this_weeks_fights[x_cols]
-    this_weeks_fights['Prediction_RF'] = rf.predict(x_data_pred)
-    this_weeks_fights['Prediction_LR'] = lr.predict_proba(x_data_pred)[:, 1]
+    this_weeks_fights['Prediction_RF_Winner'] = rf_winner.predict(x_data_pred)
+    this_weeks_fights['Prediction_GB_Winner'] = gb_winner.predict(x_data_pred)
+    this_weeks_fights['Prediction_LR_Winner'] = lr_winner.predict_proba(x_data_pred)[:, 1]
+    this_weeks_fights['Prediction_RF_SUB'] = rf_sub.predict(x_data_pred)
+    this_weeks_fights['Prediction_GB_SUB'] = gb_sub.predict(x_data_pred)
+    this_weeks_fights['Prediction_LR_SUB'] = lr_sub.predict_proba(x_data_pred)[:, 1]
+    this_weeks_fights['Prediction_RF_KO'] = rf_ko.predict(x_data_pred)
+    this_weeks_fights['Prediction_GB_KO'] = gb_ko.predict(x_data_pred)
+    this_weeks_fights['Prediction_LR_KO'] = lr_ko.predict_proba(x_data_pred)[:, 1]
 
     # Saving date and predicted data
     this_weeks_fights['Date'] = dt.date.today()
@@ -211,6 +256,6 @@ def this_weeks_predictions(this_weeks_fights):
 this_weeks_fights = retrieve_this_weeks_fights()
 append_fight_data(this_weeks_fights)
 
-# Re-traininng RF model & using it to predict fights
+# Training models & using it to predict fights
 this_weeks_predictions(this_weeks_fights)
     
