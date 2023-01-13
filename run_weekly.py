@@ -160,24 +160,16 @@ def ml_data_prep(target):
     x_cols = ['reach_diff', 'age_diff', 'slpm_diff', 'sapm_diff', 'td_acc_diff', 'td_def_diff',
                 'td_avg_diff', 'sub_avg_diff', 'strk_acc_diff', 'strk_def_diff', 'wins_diff',
                 'losses_diff', 'win_pct_diff', 'weight_1', 'age_1']
+    y_col = target
 
-    if target == ['result']:
-        y_col = target
-        x, y = data[x_cols], data[y_col]
-    else:
-        x, y = data[x_cols], data[y_col]
-
-        # Upsampling Target
-        x_up, y_up = resample(x[y==1], y[y==1], replace = True, random_state = 0, n_samples = x[y==0].shape[0])
-
-        x = np.vstack((x[y==0], x_up))
-        y = np.hstack((y[y==0], y_up))
+    x, y = data[x_cols], data[y_col]
+    y = y.values.ravel()
 
     return x, y, x_cols
 
 def create_grid_search(model, param_grid, x, y, cv = 10):
     # Running Grid Search
-    grid_search = GridSearchCV(function, param_grid, cv = cv)
+    grid_search = GridSearchCV(model, param_grid, cv = cv)
     grid_search.fit(x, y)
     
     # Outputting results
@@ -188,9 +180,12 @@ def create_grid_search(model, param_grid, x, y, cv = 10):
 def this_weeks_predictions(this_weeks_fights):
     
     # Getting x and y for models
-    x, y, x_cols = ml_data_prep(target = ['result'])
+    x, y, x_cols = ml_data_prep(target = 'result')
+    x_scaled = StandardScaler().fit_transform(x)
     x_ko, y_ko, x_cols = ml_data_prep(target = 'KO_OVR')
+    x_ko_scaled = StandardScaler().fit_transform(x_ko)
     x_sub, y_sub, x_cols = ml_data_prep(target = 'SUB_OVR')
+    x_sub_scaled = StandardScaler().fit_transform(x_sub)
 
     # Prep grid searches
     # RF
@@ -212,8 +207,6 @@ def this_weeks_predictions(this_weeks_fights):
         'max_depth' : max_depth
     }
     # LR
-    scaler = StandardScaler()
-    x_scaled = scaler.fit_transform(x)
     c = [0.001, 0.01, 0.1, 1, 10, 100]
     param_grid_lr = {
         'C' : c
@@ -222,32 +215,57 @@ def this_weeks_predictions(this_weeks_fights):
     # Saving best winner models from grid searches
     rf_winner = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x, y = y)
     gb_winner = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x, y = y)
-    lr_winner = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_lr, cv = 10, x = x_scaled, y = y)
-    rf_ko = create_grid_search(RandomForestClassifier(random_state = 0), param_grid_rf, cv = 10, x = x_ko, y = y_ko)
+    lr_winner = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_scaled, y = y)
+    rf_ko = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x_ko, y = y_ko)
     gb_ko = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x_ko, y = y_ko)
-    lr_ko = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_lr, cv = 10, x = x_ko, y = y_ko)
-    rf_sub = create_grid_search(RandomForestClassifier(random_state = 0), param_grid_rf, cv = 10, x = x_sub, y = y_sub)
+    lr_ko = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_ko_scaled, y = y_ko)
+    rf_sub = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x_sub, y = y_sub)
     gb_sub = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x_sub, y = y_sub)
-    lr_sub = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_lr, cv = 10, x = x_sub, y = y_sub)
+    lr_sub = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_sub_scaled, y = y_sub)
+
+    # Filtering out fights with UFC newcomers
+    this_weeks_fights = this_weeks_fights[this_weeks_fights.slpm_2 + this_weeks_fights.sapm_2 != 0]
+    this_weeks_fights = this_weeks_fights[this_weeks_fights.slpm_1 + this_weeks_fights.sapm_1 != 0]
 
     # Preparing prediction data & predicting
+    this_weeks_fights['reach_diff'] = this_weeks_fights.reach_1 - this_weeks_fights.reach_2
+    this_weeks_fights['age_diff'] = this_weeks_fights.age_1 - this_weeks_fights.age_2
+    this_weeks_fights['slpm_diff'] = this_weeks_fights.slpm_1 - this_weeks_fights.slpm_2
+    this_weeks_fights['sapm_diff'] = this_weeks_fights.sapm_1 - this_weeks_fights.sapm_2
+    this_weeks_fights['td_acc_diff'] = this_weeks_fights.td_acc_1 - this_weeks_fights.td_acc_2
+    this_weeks_fights['td_def_diff'] = this_weeks_fights.td_def_1 - this_weeks_fights.td_def_2
+    this_weeks_fights['td_avg_diff'] = this_weeks_fights.td_avg_1 - this_weeks_fights.td_avg_2
+    this_weeks_fights['sub_avg_diff'] = this_weeks_fights.sub_avg_1 - this_weeks_fights.sub_avg_2
+    this_weeks_fights['strk_acc_diff'] = this_weeks_fights.strk_acc_1 - this_weeks_fights.strk_acc_2
+    this_weeks_fights['strk_def_diff'] = this_weeks_fights.strk_def_1 - this_weeks_fights.strk_def_2
+    this_weeks_fights['wins_diff'] = this_weeks_fights.wins_1 - this_weeks_fights.wins_2
+    this_weeks_fights['losses_diff'] = this_weeks_fights.losses_1 - this_weeks_fights.losses_2
+    this_weeks_fights['win_pct_1'] = this_weeks_fights.wins_1/(this_weeks_fights.losses_1 + this_weeks_fights.wins_1)
+    this_weeks_fights['win_pct_2'] = this_weeks_fights.wins_2/(this_weeks_fights.losses_2 + this_weeks_fights.wins_2)
+    this_weeks_fights['win_pct_diff'] = this_weeks_fights.win_pct_1 - this_weeks_fights.win_pct_2
     x_data_pred = this_weeks_fights[x_cols]
-    this_weeks_fights['Prediction_RF_Winner'] = rf_winner.predict(x_data_pred)
-    this_weeks_fights['Prediction_GB_Winner'] = gb_winner.predict(x_data_pred)
+
+    this_weeks_fights['Prediction_RF_Winner'] = rf_winner.predict_proba(x_data_pred)[:, 1]
+    this_weeks_fights['Prediction_GB_Winner'] = gb_winner.predict_proba(x_data_pred)[:, 1]
     this_weeks_fights['Prediction_LR_Winner'] = lr_winner.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_RF_SUB'] = rf_sub.predict(x_data_pred)
-    this_weeks_fights['Prediction_GB_SUB'] = gb_sub.predict(x_data_pred)
+    this_weeks_fights['Prediction_RF_SUB'] = rf_sub.predict_proba(x_data_pred)[:, 1]
+    this_weeks_fights['Prediction_GB_SUB'] = gb_sub.predict_proba(x_data_pred)[:, 1]
     this_weeks_fights['Prediction_LR_SUB'] = lr_sub.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_RF_KO'] = rf_ko.predict(x_data_pred)
-    this_weeks_fights['Prediction_GB_KO'] = gb_ko.predict(x_data_pred)
+    this_weeks_fights['Prediction_RF_KO'] = rf_ko.predict_proba(x_data_pred)[:, 1]
+    this_weeks_fights['Prediction_GB_KO'] = gb_ko.predict_proba(x_data_pred)[:, 1]
     this_weeks_fights['Prediction_LR_KO'] = lr_ko.predict_proba(x_data_pred)[:, 1]
 
     # Saving date and predicted data
     this_weeks_fights['Date'] = dt.date.today()
-    this_weeks_fights.to_csv(f'Predictions/predictions_{dt.date.today()}.csv')
 
+    return this_weeks_fights
+
+def append_predictions(this_weeks_predictions):
+    predictions = pd.read_csv('mma_data_predictions.csv', index_col = 0)
+    predictions = predictions.append(this_weeks_predictions)
+    predictions.reset_index(inplace = True, drop = True)
+    predictions.to_csv('mma_data_predictions.csv')
     return
-
 
 ##########SCRIPT##########
 
@@ -257,5 +275,6 @@ this_weeks_fights = retrieve_this_weeks_fights()
 append_fight_data(this_weeks_fights)
 
 # Training models & using it to predict fights
-this_weeks_predictions(this_weeks_fights)
+this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
+append_predictions(this_weeks_predictions)
     
