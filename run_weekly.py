@@ -243,6 +243,7 @@ def this_weeks_predictions(this_weeks_fights):
     this_weeks_fights['win_pct_1'] = this_weeks_fights.wins_1/(this_weeks_fights.losses_1 + this_weeks_fights.wins_1)
     this_weeks_fights['win_pct_2'] = this_weeks_fights.wins_2/(this_weeks_fights.losses_2 + this_weeks_fights.wins_2)
     this_weeks_fights['win_pct_diff'] = this_weeks_fights.win_pct_1 - this_weeks_fights.win_pct_2
+    
     x_data_pred = this_weeks_fights[x_cols]
 
     this_weeks_fights['Prediction_RF_Winner'] = rf_winner.predict_proba(x_data_pred)[:, 1]
@@ -277,4 +278,3 @@ append_fight_data(this_weeks_fights)
 # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
 append_predictions(this_weeks_predictions)
-    
