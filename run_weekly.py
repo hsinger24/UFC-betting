@@ -140,6 +140,12 @@ def ml_data_prep(target):
     data = data[data.result >= 0]
 
     # Engineering some columns
+    data['strike_diff_1'] = data.slpm_1 - data.sapm_1
+    data['strike_diff_2'] = data.slpm_2 - data.sapm_2
+    data['strike_diff'] = data.strike_diff_1 - data.strike_diff_2
+    data['td_diff_1'] = data.td_acc_1 - data.td_def_1
+    data['td_diff_2'] = data.td_acc_2 - data.td_def_2
+    data['td_diff'] = data.td_diff_1 - data.td_diff_2
     data['reach_diff'] = data.reach_1 - data.reach_2
     data['age_diff'] = data.age_1 - data.age_2
     data['slpm_diff'] = data.slpm_1 - data.slpm_2
@@ -159,7 +165,7 @@ def ml_data_prep(target):
     # Droping unecessary columnns and scaling data
     x_cols = ['reach_diff', 'age_diff', 'slpm_diff', 'sapm_diff', 'td_acc_diff', 'td_def_diff',
                 'td_avg_diff', 'sub_avg_diff', 'strk_acc_diff', 'strk_def_diff', 'wins_diff',
-                'losses_diff', 'win_pct_diff', 'weight_1', 'age_1']
+                'losses_diff', 'win_pct_diff', 'weight_1', 'age_1', 'strike_diff', 'td_diff']
     y_col = target
 
     x, y = data[x_cols], data[y_col]
