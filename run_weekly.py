@@ -234,6 +234,12 @@ def this_weeks_predictions(this_weeks_fights):
     this_weeks_fights = this_weeks_fights[this_weeks_fights.slpm_1 + this_weeks_fights.sapm_1 != 0]
 
     # Preparing prediction data & predicting
+    this_weeks_fights['strike_diff_1'] = this_weeks_fights.slpm_1 - this_weeks_fights.sapm_1
+    this_weeks_fights['strike_diff_2'] = this_weeks_fights.slpm_2 - this_weeks_fights.sapm_2
+    this_weeks_fights['strike_diff'] = this_weeks_fights.strike_diff_1 - this_weeks_fights.strike_diff_2
+    this_weeks_fights['td_diff_1'] = this_weeks_fights.td_acc_1 - this_weeks_fights.td_def_1
+    this_weeks_fights['td_diff_2'] = this_weeks_fights.td_acc_2 - this_weeks_fights.td_def_2
+    this_weeks_fights['td_diff'] = this_weeks_fights.td_diff_1 - this_weeks_fights.td_diff_2
     this_weeks_fights['reach_diff'] = this_weeks_fights.reach_1 - this_weeks_fights.reach_2
     this_weeks_fights['age_diff'] = this_weeks_fights.age_1 - this_weeks_fights.age_2
     this_weeks_fights['slpm_diff'] = this_weeks_fights.slpm_1 - this_weeks_fights.slpm_2
@@ -279,7 +285,7 @@ def append_predictions(this_weeks_predictions):
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
-append_fight_data(this_weeks_fights)
+# append_fight_data(this_weeks_fights)
 
 # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
