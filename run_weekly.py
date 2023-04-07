@@ -285,7 +285,7 @@ def append_predictions(this_weeks_predictions):
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
-# append_fight_data(this_weeks_fights)
+append_fight_data(this_weeks_fights)
 
 # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
