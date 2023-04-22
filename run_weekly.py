@@ -86,8 +86,12 @@ def retrieve_this_weeks_fights():
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         name = soup.find_all('span', class_ = 'b-content__title-highlight')[0].text.replace('\n', '').replace(' ', '')
-        weight = float(re.findall(regex_weight, soup.prettify())[0].strip('l').replace(' ', ''))
-        reach = float(re.findall(regex_reach, soup.prettify())[1].strip('"'))
+        try:
+            weight = float(re.findall(regex_weight, soup.prettify())[0].strip('l').replace(' ', ''))
+            reach = float(re.findall(regex_reach, soup.prettify())[1].strip('"'))
+        except:
+            weight = 0
+            reach = 0
         dob = int(re.findall(regex_dob, soup.prettify())[0].strip(',').replace(' ', ''))
         age = year - dob
         slpm = float(re.findall(regex_various_stats, soup.prettify())[1])
@@ -118,6 +122,7 @@ def retrieve_this_weeks_fights():
     final['result'] = -5
     final['SUB_OVR']= 0
     final['KO_OVR'] = 0
+    final = final[(final.weight_1 != 0) & (final.weight_2 != 0)]
     print(final.tail())
     driver.quit()
     return final
