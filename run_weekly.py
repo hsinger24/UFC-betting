@@ -13,6 +13,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import pandas as pd
 import re
+from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
 import datetime as dt
 import numpy as np
@@ -285,6 +286,119 @@ def append_predictions(this_weeks_predictions):
     predictions.to_csv('mma_data_predictions.csv')
     return
 
+def calculate_odds(odds):
+    if odds<0:
+        return (abs(odds)/(abs(odds)+100))
+    if odds>0:
+        return (100/(odds+100))
+
+def calculate_bets(row, diff):
+    bet = 0
+    fighter = ''
+    if (row.Prediction_GB_Winner != 0):
+        if row.Prediction_GB_Winner - calculate_odds(row.Fighter_1_Odds) >= diff:
+            bet = 100
+            fighter = row.Fighter_1
+        if (1.0 - row.Prediction_GB_Winner) - calculate_odds(row.Fighter_2_Odds) >= diff:
+            bet = 100
+            fighter = row.Fighter_2
+    if bet > 0:
+        rec = f'Bet 100 on {fighter}'
+    else:
+        rec = 'No bet'
+    return rec
+
+def bet_recommender(prediction_df):
+    # Instantiating webdriver
+    driver = webdriver.Chrome(ChromeDriverManager().install())
+    driver.get('https://www.actionnetwork.com/ufc/odds')
+
+    # Getting odds table and formatting
+    html = driver.page_source
+    tables = pd.read_html(html)
+    odds = tables[0]
+    odds = odds.iloc[::2]
+    odds.reset_index(drop = True, inplace = True)
+
+    # Iterating through to get each fighter's odds
+    odds_df = pd.DataFrame(columns = ['Fighter_1', 'Fighter_2', 'Fighter_1_Odds', 'Fighter_2_Odds'])
+    fighter_2_regex = r'^[A-Za-z]+\s[A-Za-z]+'
+    fighter_1_regex = r'[A-Za-z]+\s[A-Za-z]+(?=[A-Za-z]*\.)'
+    for index, row in odds.iterrows():
+        # Getting fighter names
+        try:
+            fighter_2 = re.findall(fighter_2_regex, row.Scheduled)[0]
+            fighter_2 = fighter_2[:-1]
+            fighter_2_replace = fighter_2.split()[1]
+            fighter_1 = re.findall(fighter_1_regex, row.Scheduled)[1]
+            fighter_1 = fighter_1.replace(fighter_2_replace, "")[:-1]
+        except:
+            flag_regex = r'[^\x00-\x7F]'
+            names_string = re.sub(flag_regex, '', row.Scheduled)
+            fighter_2 = re.findall(fighter_2_regex, names_string)[0]
+            fighter_2 = fighter_2[:-1]
+            fighter_2_replace = fighter_2.split()[1]
+            fighter_1 = re.findall(fighter_1_regex, names_string)[1]
+            fighter_1 = fighter_1.replace(fighter_2_replace, "")[:-1]
+        # Getting fighter odds
+        ml_string = row['Unnamed: 3']
+        if len(ml_string) == 8:
+            ml_fighter_2 = ml_string[:4]
+            ml_fighter_1 = ml_string[-4:]
+        elif len(ml_string) == 9:
+            if (ml_string[4] == '+') | (ml_string[4]=='-'):
+                ml_fighter_2 = ml_string[:4]
+                ml_fighter_1 = ml_string[-5:]
+            else:
+                ml_fighter_2 = ml_string[:5]
+                ml_fighter_1 = ml_string[-4:]
+        elif len(ml_string) == 10:
+                ml_fighter_2 = ml_string[:5]
+                ml_fighter_1 = ml_string[-5:]
+        else:
+            continue
+        try:
+            ml_fighter_2 = float(ml_fighter_2)
+        except:
+            continue
+        try:
+            ml_fighter_1 = float(ml_fighter_1)
+        except:
+            continue
+        # Adding data to odds df
+        new_data = [fighter_1, fighter_2, ml_fighter_1, ml_fighter_2]
+        new_df = pd.DataFrame([new_data])
+        new_df.columns = odds_df.columns
+        odds_df = pd.concat([odds_df, new_df], ignore_index = True)
+    
+    # Calculating bets
+    odds_df['Prediction_GB_Winner'] = 0
+    for index, row in odds_df.iterrows():
+        prediction_df['FUZZ_1'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_1))
+        prediction_df['FUZZ_2'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_2))
+        try:
+            row = prediction_df.loc[(prediction_df.FUZZ_1 > 50) | (prediction_df.FUZZ_2 > 50)]
+            gb = row['Prediction_GB_Winner'].values[0]
+            fights_1 = row['wins_1'].values[0] + row['losses_1'].values[0]
+            fights_2 = row['wins_2'].values[0] + row['losses_2'].values[0]
+            if (fights_1 > 20) | (fights_2 > 20):
+                odds_df.loc[index, 'Prediction_GB_Winner'] = gb
+            else:
+                continue
+        except:
+            continue
+    odds_df['Bet'] = odds_df.apply(calculate_bets, diff = 0.1, axis = 1)
+    odds_df = odds_df.iloc[:, :6]
+
+    return odds_df
+
+def append_bets(this_weeks_bets):
+    mma_data = pd.read_csv('mma_bets.csv', index_col = 0)
+    mma_data = mma_data.append(this_weeks_bets)
+    mma_data.reset_index(inplace = True, drop = True)
+    mma_data.to_csv('mma_bets.csv')
+    return
+
 ##########SCRIPT##########
 
 
@@ -295,3 +409,7 @@ append_fight_data(this_weeks_fights)
 # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
 append_predictions(this_weeks_predictions)
+
+# Calculating bets 
+this_weeks_bets = bet_recommender(this_weeks_predictions)
+append_bets(this_weeks_bets)
