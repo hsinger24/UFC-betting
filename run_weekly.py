@@ -30,6 +30,12 @@ from stable_baselines3 import PPO
 from stable_baselines3 import SAC
 from stable_baselines3.common.vec_env import DummyVecEnv
 
+import email, smtplib, ssl
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 ##########FUNCTIONS##########
 
 
@@ -308,7 +314,7 @@ def calculate_bets(row, diff):
         rec = 'No bet'
     return rec
 
-def bet_recommender(prediction_df):
+def bet_recommender(prediction_df, best_diff, best_fight_number):
     # Instantiating webdriver
     driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.get('https://www.actionnetwork.com/ufc/odds')
@@ -381,13 +387,13 @@ def bet_recommender(prediction_df):
             gb = row['Prediction_GB_Winner'].values[0]
             fights_1 = row['wins_1'].values[0] + row['losses_1'].values[0]
             fights_2 = row['wins_2'].values[0] + row['losses_2'].values[0]
-            if (fights_1 > 20) | (fights_2 > 20):
+            if (fights_1 > best_fight_number) | (fights_2 > best_fight_number):
                 odds_df.loc[index, 'Prediction_GB_Winner'] = gb
             else:
                 continue
         except:
             continue
-    odds_df['Bet'] = odds_df.apply(calculate_bets, diff = 0.1, axis = 1)
+    odds_df['Bet'] = odds_df.apply(calculate_bets, diff = best_diff, axis = 1)
     odds_df = odds_df.iloc[:, :6]
 
     return odds_df
@@ -399,8 +405,206 @@ def append_bets(this_weeks_bets):
     mma_data.to_csv('mma_bets.csv')
     return
 
+def fill_odds():
+
+    # Adding new fights to odds data
+    data_filled = pd.read_csv('mma_data_odds.csv', index_col = 0)
+    data_all = pd.read_csv('mma_data.csv', index_col = 0)
+    data_all = data_all[data_all.result >= 0]
+    data_all['Fighter_1_Odds'] = 0
+    data_all['Fighter_2_Odds'] = 0
+    # Filling odds w/ data with recent fights
+    last_row_filled = data_filled.tail(1)
+    fighter_1_last = last_row_filled.fighter_1.values[0]
+    fighter_2_last = last_row_filled.fighter_2.values[0]
+    data_all_copied = data_all.copy()
+    data_all_copied.reset_index(inplace = True, drop = True)
+    cutoff_unfilled = data_all_copied[(data_all_copied.fighter_1 == fighter_1_last) & 
+                                    (data_all_copied.fighter_2 == fighter_2_last)].index[0]
+    data_all_new = data_all_copied.iloc[cutoff_unfilled+1:]
+    data = pd.concat([data_filled, data_all_new])
+
+    # Filling in odds
+    options = Options()
+    options.add_argument('--no-sandbox')
+    options.add_argument("user-data-dir=/Users/hsinger24/Library/Application Support/Google/Chrome/Default1")
+    options.add_argument("--start-maximized")
+    options.add_argument('--disable-web-security')
+    options.add_argument('--allow-running-insecure-content')
+    options.add_argument("--disable-setuid-sandbox")
+    driver = webdriver.Chrome(ChromeDriverManager().install())
+    driver.get('https://www.bestfightodds.com/archive')
+    time.sleep(1)
+    for index, row in data.iterrows():
+        try:
+            if row.Fighter_1_Odds == 0:
+                # Formatting name of higher ranked fighter
+                fighter_1 = str(row.fighter_1)
+                fighter_1 = re.findall('[A-Z][^A-Z]*', fighter_1)    
+                fighter_name = ''
+                for name in fighter_1:
+                    fighter_name = fighter_name + ' ' + name
+                # Formatting name of lower ranked fighter
+                fighter_2 = str(row.fighter_2)
+                fighter_2 = re.findall('[A-Z][^A-Z]*', fighter_2)    
+                fighter_name_2 = ''
+                for name in fighter_2:
+                    fighter_name_2 = fighter_name_2 + ' ' + name
+                # Searching for fights w/ higher ranked fighter
+                search_bar = driver.find_elements(By.XPATH, '//*[@id="page-content"]/form/p/input[1]')[0]
+                search_bar.send_keys(fighter_name)
+                driver.find_elements(By.XPATH, '//*[@id="page-content"]/form/p/input[2]')[0].click()
+                # Clicking on fighter 1 
+                try:
+                    driver.find_elements(By.XPATH, '//*[@id="page-content"]/table[1]/tbody/tr[1]/td[2]/a')[0].click()
+                    time.sleep(1)
+                except:
+                    pass
+                # Getting odds
+                html = driver.page_source
+                table = pd.read_html(html)[0]
+                table = table[['Matchup', 'Closing range']]
+                table['Fuzzy_1'] = table.Matchup.apply(lambda x: fuzz.ratio(x, fighter_name))
+                table['Fuzzy_2'] = table.Matchup.apply(lambda x: fuzz.ratio(x, fighter_name_2))
+                table = table[(table.Fuzzy_2 > 50) | (table.Fuzzy_1 > 50)].reset_index(drop = True)
+                index_opp = table[table.Fuzzy_2 > 50].index[0]
+                table_matchup = table.loc[index_opp-1:index_opp, :].reset_index(drop = True)
+                # Filling odds
+                data.loc[index, 'Fighter_1_Odds'] = table_matchup.loc[0, 'Closing range']
+                data.loc[index, 'Fighter_2_Odds'] = table_matchup.loc[1, 'Closing range']
+                # Navigating back and clearing text box
+                driver.back()
+                driver.implicitly_wait(10)
+                driver.back()
+                driver.implicitly_wait(10)
+                driver.find_elements(By.XPATH, '//*[@id="page-content"]/form/p/input[1]')[0].clear()
+            else:
+                pass
+        except:
+            driver.quit()
+            time.sleep(1)
+            options = Options()
+            options.add_argument('--no-sandbox')
+            options.add_argument("user-data-dir=/Users/hsinger24/Library/Application Support/Google/Chrome/Default1")
+            options.add_argument("--start-maximized")
+            options.add_argument('--disable-web-security')
+            options.add_argument('--allow-running-insecure-content')
+            options.add_argument("--disable-setuid-sandbox")
+            driver = webdriver.Chrome(ChromeDriverManager().install())
+            driver.get('https://www.bestfightodds.com/archive')
+    data = data[(data.Fighter_1_Odds != 0) & (data.Fighter_2_Odds != 0)]
+    data.dropna(subset = ['Fighter_1_Odds', 'Fighter_2_Odds'], inplace = True)
+    data.reset_index(inplace = True, drop = True)
+
+    # Saving updated file
+    data.to_csv('mma_data_odds.csv')
+    
+    return
+
+def calculate_best_bet_construct():
+    
+    # Internal functions
+
+    def calculate_odds_internal(odds):
+        if odds<0:
+            return (abs(odds)/(abs(odds)+100))
+        if odds>0:
+            return (100/(odds+100))
+    def calculate_bets_internal(row, diff):
+        bet = 0
+        if row.Prediction_GB_Winner - calculate_odds_internal(row.Fighter_1_Odds) >= diff:
+            bet = 100
+        if (1.0 - row.Prediction_GB_Winner) - calculate_odds_internal(row.Fighter_2_Odds) >= diff:
+            bet = 100
+        return bet
+    def calculate_payoff_and_result_internal(row):
+        if row.Bet > 0:
+            # Calculating Payoff
+            if row.Predicted_Result_GB == 1:
+                if row.Fighter_1_Odds>0:
+                    payoff = (row.Fighter_1_Odds/100)*row.Bet
+                else:
+                    payoff = row.Bet/((abs(row.Fighter_1_Odds)/100))
+            else:
+                if row.Fighter_2_Odds>0:
+                    payoff = (row.Fighter_2_Odds/100)*row.Bet
+                else:
+                    payoff = row.Bet/((abs(row.Fighter_2_Odds)/100))
+            # Calculating Bet Result
+            if row.Predicted_Result_GB == row.result_y:
+                bet_result = payoff
+            else:
+                bet_result = -(row.Bet)
+        else:
+            bet_result = 0
+        return bet_result
+
+    # Setting up data 
+
+    # Joining predictions to table w/ results and getting result
+    predictions = pd.read_csv('mma_data_predictions.csv', index_col = 0)
+    data = pd.read_csv('mma_data.csv', index_col = 0)
+    data = data[data.result >= 0]
+    results_data = data[['fighter_1', 'fighter_2', 'result', 'KO_OVR', 'SUB_OVR']]
+    odds_data = pd.read_csv('mma_data_odds.csv', index_col = 0)
+    merged = predictions.merge(results_data, on = ['fighter_1', 'fighter_2'])
+    # Winner results
+    merged['Predicted_Result_RF'] = merged.Prediction_RF_Winner.apply(lambda x: 1 if x > 0.5 else 0)
+    merged['Predicted_Result_GB'] = merged.Prediction_GB_Winner.apply(lambda x: 1 if x > 0.5 else 0)
+    merged['Accurate_RF'] = merged.apply(lambda x: 1 if x.result_y == x.Predicted_Result_RF else 0, axis = 1)
+    merged['Accurate_GB'] = merged.apply(lambda x: 1 if x.result_y == x.Predicted_Result_GB else 0, axis = 1)
+    # Sub results
+    merged['Predicted_Sub_RF'] = merged.Prediction_RF_SUB.apply(lambda x: 1 if x > 0.5 else 0)
+    merged['Predicted_Sub_GB'] = merged.Prediction_GB_SUB.apply(lambda x: 1 if x > 0.5 else 0)
+    merged['Accurate_RF_SUB'] = merged.apply(lambda x: 1 if x.SUB_OVR_y == x.Predicted_Sub_RF else 0, axis = 1)
+    merged['Accurate_GB_SUB'] = merged.apply(lambda x: 1 if x.SUB_OVR_y == x.Predicted_Sub_GB else 0, axis = 1)
+    # KO Results
+    merged['Predicted_KO_RF'] = merged.Prediction_RF_KO.apply(lambda x: 1 if x > 0.5 else 0)
+    merged['Predicted_KO_GB'] = merged.Prediction_GB_KO.apply(lambda x: 1 if x > 0.5 else 0)
+    merged['Accurate_RF_KO'] = merged.apply(lambda x: 1 if x.KO_OVR_y == x.Predicted_KO_RF else 0, axis = 1)
+    merged['Accurate_GB_KO'] = merged.apply(lambda x: 1 if x.KO_OVR_y == x.Predicted_KO_GB else 0, axis = 1)
+    # Getting all the relevant data in one place for bet constructs
+    odds_data = odds_data[['fighter_1', 'fighter_2', 'Fighter_1_Odds', 'Fighter_2_Odds']]
+    profit_df = merged.merge(odds_data, on = ['fighter_1', 'fighter_2'])
+    profit_df = profit_df[(profit_df.Fighter_1_Odds!=0) & (profit_df.Fighter_2_Odds!=0)]
+
+    # Determining best bet construct
+
+    best_diff = 0
+    best_profit = 0
+    best_fight_number = 0
+    for i in [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]:
+        profit_df['Bet'] = profit_df.apply(calculate_bets_internal, diff = i, axis = 1)
+        profit_df['Bet_Result'] = profit_df.apply(calculate_payoff_and_result_internal, axis = 1)
+        print(f'With a cutoff of {i}, betting results are {profit_df.Bet_Result.sum()}')
+        if float(profit_df.Bet_Result.sum()) > best_profit:
+            best_diff = i
+        if profit_df.Bet_Result.sum() > best_profit:
+            best_profit = profit_df.Bet_Result.sum()
+    # Veteran fights only
+    best_profit = 0
+    profit_df['Bet'] = profit_df.apply(calculate_bets_internal, diff = best_diff, axis = 1)
+    profit_df['Bet_Result'] = profit_df.apply(calculate_payoff_and_result_internal, axis = 1)
+    for num_fights in [0, 5, 10, 15, 20, 25]:
+        profit_df['Fights_1'] = profit_df.wins_1 + profit_df.losses_1
+        profit_df['Fights_2'] = profit_df.wins_2 + profit_df.losses_2
+        test = profit_df[(profit_df.Fights_1 > num_fights) | (profit_df.Fights_2 > num_fights)]
+        results = test.Bet_Result.sum()
+        print(f'For a {num_fights} fight minimum, the model returns {results}')
+        if results > best_profit:
+            best_fight_number = num_fights
+        if results > best_profit:
+            best_profit = results
+        
+    return best_diff, best_fight_number
+
 ##########SCRIPT##########
 
+# Filling in odds of recent fights
+fill_odds()
+
+# Determining best bet construct
+best_diff, best_fight_number = calculate_best_bet_construct
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
@@ -411,5 +615,5 @@ this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
 append_predictions(this_weeks_predictions)
 
 # Calculating bets 
-this_weeks_bets = bet_recommender(this_weeks_predictions)
+this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number)
 append_bets(this_weeks_bets)
