@@ -330,22 +330,48 @@ def bet_recommender(prediction_df, best_diff, best_fight_number):
     odds_df = pd.DataFrame(columns = ['Fighter_1', 'Fighter_2', 'Fighter_1_Odds', 'Fighter_2_Odds'])
     fighter_2_regex = r'^[A-Za-z]+\s[A-Za-z]+'
     fighter_1_regex = r'[A-Za-z]+\s[A-Za-z]+(?=[A-Za-z]*\.)'
+    flag_regex = r'[^\x00-\x7F]'
     for index, row in odds.iterrows():
         # Getting fighter names
-        try:
-            fighter_2 = re.findall(fighter_2_regex, row.Scheduled)[0]
-            fighter_2 = fighter_2[:-1]
-            fighter_2_replace = fighter_2.split()[1]
-            fighter_1 = re.findall(fighter_1_regex, row.Scheduled)[1]
-            fighter_1 = fighter_1.replace(fighter_2_replace, "")[:-1]
-        except:
-            flag_regex = r'[^\x00-\x7F]'
-            names_string = re.sub(flag_regex, '', row.Scheduled)
-            fighter_2 = re.findall(fighter_2_regex, names_string)[0]
-            fighter_2 = fighter_2[:-1]
-            fighter_2_replace = fighter_2.split()[1]
-            fighter_1 = re.findall(fighter_1_regex, names_string)[1]
-            fighter_1 = fighter_1.replace(fighter_2_replace, "")[:-1]
+        names_string = re.sub(flag_regex, '', row.Scheduled)
+        names_split = names_string.split()
+        if len(names_split) == 5:
+            fighter_2 = names_split[0] + ' ' + names_split[1][:-2]
+            # Splitting middle part to get fighter 1 first name
+            need_to_split = names_split[2]
+            split = re.findall('[A-Z][^A-Z]*', need_to_split)
+            fighter_1 = split[1] + ' ' + names_split[-1]
+        else:
+            # Case where first name is three names
+            if len(re.findall('[A-Z][^A-Z]*', names_split[2])) > 1:
+                need_to_split = names_split[2]
+                split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                fighter_2 = names_split[0] + ' ' + names_split[1] + ' ' + split[0]
+                # Case where second name is three names
+                if len(re.findall('[A-Z][^A-Z]*', names_split[6])) > 1:
+                    need_to_split = names_split[4]
+                    split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                    fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[-1]
+                # Case where second name is four names
+                else:
+                    need_to_split = names_split[4]
+                    split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                    fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[6] + ' ' + names_split[-1]
+            # Case where first name is four names
+            else:
+                need_to_split = names_split[3]
+                split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                fighter_2 = names_split[0] + ' ' + names_split[1] + ' ' + names_split[2] + ' ' + split[0]
+                # Case where second name is three names
+                if len(re.findall('[A-Z][^A-Z]*', names_split[7])) > 1:
+                    need_to_split = names_split[4]
+                    split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                    fighter_1 = split[1] + ' ' + names_split[6] + ' ' + names_split[-1]
+                # Case where second name is four names
+                else:
+                    need_to_split = names_split[5]
+                    split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                    fighter_1 = split[1] + ' ' + names_split[6] + ' ' + names_split[7] + ' ' + names_split[-1]
         # Getting fighter odds
         ml_string = row['Unnamed: 3']
         if len(ml_string) == 8:
@@ -376,7 +402,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number):
         new_df = pd.DataFrame([new_data])
         new_df.columns = odds_df.columns
         odds_df = pd.concat([odds_df, new_df], ignore_index = True)
-    
+
     # Calculating bets
     odds_df['Prediction_GB_Winner'] = 0
     for index, row in odds_df.iterrows():
@@ -604,15 +630,15 @@ def calculate_best_bet_construct():
 fill_odds()
 
 # Determining best bet construct
-best_diff, best_fight_number = calculate_best_bet_construct
+best_diff, best_fight_number = calculate_best_bet_construct()
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
-append_fight_data(this_weeks_fights)
+# append_fight_data(this_weeks_fights)
 
 # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
-append_predictions(this_weeks_predictions)
+# append_predictions(this_weeks_predictions)
 
 # Calculating bets 
 this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number)
