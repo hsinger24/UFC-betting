@@ -411,7 +411,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number):
         try:
             row = prediction_df.loc[(prediction_df.FUZZ_1 > 50) | (prediction_df.FUZZ_2 > 50)]
             gb = row['Prediction_GB_Winner'].values[0]
-            if prediction_df.loc[index, 'FUZZ_1'] > 50:
+            if row['FUZZ_1'].values[0] > 50:
                 pass
             else:
                 gb = 1.0 - gb
