@@ -411,6 +411,10 @@ def bet_recommender(prediction_df, best_diff, best_fight_number):
         try:
             row = prediction_df.loc[(prediction_df.FUZZ_1 > 50) | (prediction_df.FUZZ_2 > 50)]
             gb = row['Prediction_GB_Winner'].values[0]
+            if prediction_df.loc[index, 'FUZZ_1'] > 50:
+                pass
+            else:
+                gb = 1.0 - gb
             fights_1 = row['wins_1'].values[0] + row['losses_1'].values[0]
             fights_2 = row['wins_2'].values[0] + row['losses_2'].values[0]
             if (fights_1 > best_fight_number) | (fights_2 > best_fight_number):
@@ -634,11 +638,11 @@ best_diff, best_fight_number = calculate_best_bet_construct()
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
-# append_fight_data(this_weeks_fights)
+append_fight_data(this_weeks_fights)
 
 # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
-# append_predictions(this_weeks_predictions)
+append_predictions(this_weeks_predictions)
 
 # Calculating bets 
 this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number)
