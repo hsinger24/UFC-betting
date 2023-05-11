@@ -328,7 +328,22 @@ def calculate_bets_gb(row, diff):
         rec = 'No bet'
     return rec
 
-def bet_recommender(prediction_df, best_diff, best_fight_number):
+def calculate_bets_lgbm(row):
+    bet = 0
+    if (row.Prediction_LGBM_Winner != 0):
+        if row.Prediction_LGBM_Winner > 0.5:
+            bet = 100
+            fighter = row.Fighter_1
+        else:
+            bet = 100
+            fighter = row.Fighter_2
+    if bet > 0:
+        rec = f'Bet 100 on {fighter}'
+    else:
+        rec = 'No bet'
+    return rec
+
+def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_number_lgbm):
     # Instantiating webdriver
     driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.get('https://www.actionnetwork.com/ufc/odds')
@@ -417,7 +432,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number):
         new_df.columns = odds_df.columns
         odds_df = pd.concat([odds_df, new_df], ignore_index = True)
 
-    # Calculating bets
+    # Calculating GB bets
     odds_df['Prediction_GB_Winner'] = 0
     for index, row in odds_df.iterrows():
         prediction_df['FUZZ_1'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_1))
@@ -437,8 +452,30 @@ def bet_recommender(prediction_df, best_diff, best_fight_number):
                 continue
         except:
             continue
-    odds_df['Bet'] = odds_df.apply(calculate_bets_gb, diff = best_diff, axis = 1)
-    odds_df = odds_df.iloc[:, :6]
+    odds_df['Bet_GB'] = odds_df.apply(calculate_bets_gb, diff = best_diff, axis = 1)
+    # Calculating LGBM bets
+    odds_df['Prediction_LGBM_Winner'] = 0
+    for index, row in odds_df.iterrows():
+        prediction_df['FUZZ_1'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_1))
+        prediction_df['FUZZ_2'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_2))
+        try:
+            row = prediction_df.loc[(prediction_df.FUZZ_1 > 50) | (prediction_df.FUZZ_2 > 50)]
+            gb = row['Prediction_LGBM_Winner'].values[0]
+            if row['FUZZ_1'].values[0] > 50:
+                pass
+            else:
+                gb = 1.0 - gb
+            fights_1 = row['wins_1'].values[0] + row['losses_1'].values[0]
+            fights_2 = row['wins_2'].values[0] + row['losses_2'].values[0]
+            if (fights_1 > best_fight_number_lgbm) | (fights_2 > best_fight_number_lgbm):
+                odds_df.loc[index, 'Prediction_LGBM_Winner'] = gb
+            else:
+                continue
+        except:
+            continue
+    odds_df['Bet_LGBM'] = odds_df.apply(calculate_bets_lgbm, diff = best_diff, axis = 1)
+
+    odds_df = odds_df.iloc[:, :7]
 
     return odds_df
 
@@ -696,5 +733,5 @@ this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
 append_predictions(this_weeks_predictions)
 
 # Calculating bets 
-this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number)
+this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number, best_fight_number_lgbm = best_fight_number_lgbm)
 append_bets(this_weeks_bets)
