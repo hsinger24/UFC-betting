@@ -312,7 +312,7 @@ def calculate_odds(odds):
     if odds>0:
         return (100/(odds+100))
 
-def calculate_bets(row, diff):
+def calculate_bets_gb(row, diff):
     bet = 0
     fighter = ''
     if (row.Prediction_GB_Winner != 0):
@@ -437,7 +437,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number):
                 continue
         except:
             continue
-    odds_df['Bet'] = odds_df.apply(calculate_bets, diff = best_diff, axis = 1)
+    odds_df['Bet'] = odds_df.apply(calculate_bets_gb, diff = best_diff, axis = 1)
     odds_df = odds_df.iloc[:, :6]
 
     return odds_df
@@ -545,7 +545,7 @@ def fill_odds():
     
     return
 
-def calculate_best_bet_construct():
+def calculate_best_bet_construct_gb():
     
     # Internal functions
 
@@ -595,18 +595,18 @@ def calculate_best_bet_construct():
     # Winner results
     merged['Predicted_Result_RF'] = merged.Prediction_RF_Winner.apply(lambda x: 1 if x > 0.5 else 0)
     merged['Predicted_Result_GB'] = merged.Prediction_GB_Winner.apply(lambda x: 1 if x > 0.5 else 0)
-    merged['Accurate_RF'] = merged.apply(lambda x: 1 if x.result_y == x.Predicted_Result_RF else 0, axis = 1)
-    merged['Accurate_GB'] = merged.apply(lambda x: 1 if x.result_y == x.Predicted_Result_GB else 0, axis = 1)
-    # Sub results
-    merged['Predicted_Sub_RF'] = merged.Prediction_RF_SUB.apply(lambda x: 1 if x > 0.5 else 0)
-    merged['Predicted_Sub_GB'] = merged.Prediction_GB_SUB.apply(lambda x: 1 if x > 0.5 else 0)
-    merged['Accurate_RF_SUB'] = merged.apply(lambda x: 1 if x.SUB_OVR_y == x.Predicted_Sub_RF else 0, axis = 1)
-    merged['Accurate_GB_SUB'] = merged.apply(lambda x: 1 if x.SUB_OVR_y == x.Predicted_Sub_GB else 0, axis = 1)
-    # KO Results
-    merged['Predicted_KO_RF'] = merged.Prediction_RF_KO.apply(lambda x: 1 if x > 0.5 else 0)
-    merged['Predicted_KO_GB'] = merged.Prediction_GB_KO.apply(lambda x: 1 if x > 0.5 else 0)
-    merged['Accurate_RF_KO'] = merged.apply(lambda x: 1 if x.KO_OVR_y == x.Predicted_KO_RF else 0, axis = 1)
-    merged['Accurate_GB_KO'] = merged.apply(lambda x: 1 if x.KO_OVR_y == x.Predicted_KO_GB else 0, axis = 1)
+    # merged['Accurate_RF'] = merged.apply(lambda x: 1 if x.result_y == x.Predicted_Result_RF else 0, axis = 1)
+    # merged['Accurate_GB'] = merged.apply(lambda x: 1 if x.result_y == x.Predicted_Result_GB else 0, axis = 1)
+    # # Sub results
+    # merged['Predicted_Sub_RF'] = merged.Prediction_RF_SUB.apply(lambda x: 1 if x > 0.5 else 0)
+    # merged['Predicted_Sub_GB'] = merged.Prediction_GB_SUB.apply(lambda x: 1 if x > 0.5 else 0)
+    # merged['Accurate_RF_SUB'] = merged.apply(lambda x: 1 if x.SUB_OVR_y == x.Predicted_Sub_RF else 0, axis = 1)
+    # merged['Accurate_GB_SUB'] = merged.apply(lambda x: 1 if x.SUB_OVR_y == x.Predicted_Sub_GB else 0, axis = 1)
+    # # KO Results
+    # merged['Predicted_KO_RF'] = merged.Prediction_RF_KO.apply(lambda x: 1 if x > 0.5 else 0)
+    # merged['Predicted_KO_GB'] = merged.Prediction_GB_KO.apply(lambda x: 1 if x > 0.5 else 0)
+    # merged['Accurate_RF_KO'] = merged.apply(lambda x: 1 if x.KO_OVR_y == x.Predicted_KO_RF else 0, axis = 1)
+    # merged['Accurate_GB_KO'] = merged.apply(lambda x: 1 if x.KO_OVR_y == x.Predicted_KO_GB else 0, axis = 1)
     # Getting all the relevant data in one place for bet constructs
     odds_data = odds_data[['fighter_1', 'fighter_2', 'Fighter_1_Odds', 'Fighter_2_Odds']]
     profit_df = merged.merge(odds_data, on = ['fighter_1', 'fighter_2'])
@@ -620,7 +620,7 @@ def calculate_best_bet_construct():
     for i in [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]:
         profit_df['Bet'] = profit_df.apply(calculate_bets_internal, diff = i, axis = 1)
         profit_df['Bet_Result'] = profit_df.apply(calculate_payoff_and_result_internal, axis = 1)
-        print(f'With a cutoff of {i}, betting results are {profit_df.Bet_Result.sum()}')
+        print(f'GB - With a cutoff of {i}, betting results are {profit_df.Bet_Result.sum()}')
         if float(profit_df.Bet_Result.sum()) > best_profit:
             best_diff = i
         if profit_df.Bet_Result.sum() > best_profit:
@@ -642,13 +642,50 @@ def calculate_best_bet_construct():
         
     return best_diff, best_fight_number
 
+def calculate_best_bet_construct_lgbm():
+
+    # Joining predictions to table w/ results and getting result
+    predictions = pd.read_csv('mma_data_predictions.csv', index_col = 0)
+    data = pd.read_csv('mma_data.csv', index_col = 0)
+    data = data[data.result >= 0]
+    results_data = data[['fighter_1', 'fighter_2', 'result', 'KO_OVR', 'SUB_OVR']]
+    odds_data = pd.read_csv('mma_data_odds.csv', index_col = 0)
+    merged = predictions.merge(results_data, on = ['fighter_1', 'fighter_2'])
+    # Winner results
+    merged['Predicted_Result_RF'] = merged.Prediction_RF_Winner.apply(lambda x: 1 if x > 0.5 else 0)
+    merged['Predicted_Result_GB'] = merged.Prediction_GB_Winner.apply(lambda x: 1 if x > 0.5 else 0)
+    # Joining to odds df
+    odds_data = odds_data[['fighter_1', 'fighter_2', 'Fighter_1_Odds', 'Fighter_2_Odds']]
+    profit_df = merged.merge(odds_data, on = ['fighter_1', 'fighter_2'])
+    profit_df = profit_df[(profit_df.Fighter_1_Odds!=0) & (profit_df.Fighter_2_Odds!=0)]
+
+    # Determining best bet construct
+
+    best_profit = 0
+    best_fight_number = 0
+    for num_fights in [10, 15, 20, 25]:
+        profit_df['Fights_1'] = profit_df.wins_1 + profit_df.losses_1
+        profit_df['Fights_2'] = profit_df.wins_2 + profit_df.losses_2
+        test = profit_df[(profit_df.Fights_1 > num_fights) | (profit_df.Fights_2 > num_fights)]
+        results = test.Bet_Result.sum()
+        print(f'LGBM - For a {num_fights} minimum, the model returns {results}')
+        if float(profit_df.Bet_Result.sum()) > best_profit:
+            best_fight_number = num_fights
+        if profit_df.Bet_Result.sum() > best_profit:
+            best_profit = profit_df.Bet_Result.sum()
+    
+    return best_fight_number
+
+
+
 ##########SCRIPT##########
 
 # Filling in odds of recent fights
 fill_odds()
 
 # Determining best bet construct
-best_diff, best_fight_number = calculate_best_bet_construct()
+best_diff, best_fight_number = calculate_best_bet_construct_gb()
+best_fight_number_lgbm = calculate_best_bet_construct_lgbm()
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
