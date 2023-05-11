@@ -21,6 +21,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
@@ -200,10 +201,10 @@ def this_weeks_predictions(this_weeks_fights):
     # Getting x and y for models
     x, y, x_cols = ml_data_prep(target = 'result')
     x_scaled = StandardScaler().fit_transform(x)
-    x_ko, y_ko, x_cols = ml_data_prep(target = 'KO_OVR')
-    x_ko_scaled = StandardScaler().fit_transform(x_ko)
-    x_sub, y_sub, x_cols = ml_data_prep(target = 'SUB_OVR')
-    x_sub_scaled = StandardScaler().fit_transform(x_sub)
+    # x_ko, y_ko, x_cols = ml_data_prep(target = 'KO_OVR')
+    # x_ko_scaled = StandardScaler().fit_transform(x_ko)
+    # x_sub, y_sub, x_cols = ml_data_prep(target = 'SUB_OVR')
+    # x_sub_scaled = StandardScaler().fit_transform(x_sub)
 
     # Prep grid searches
     # RF
@@ -229,17 +230,29 @@ def this_weeks_predictions(this_weeks_fights):
     param_grid_lr = {
         'C' : c
     }
+    # LGBM
+    max_iter = [int(x) for x in np.linspace(start = 5, stop = 15, num = 11)]
+    max_leaf_nodes = [int(x) for x in np.linspace(start = 4, stop = 10, num = 7)]
+    max_depth = [int(x) for x in np.linspace(start = 4, stop = 10, num = 7)]
+    learning_rate = [0.001, 0.01, 0.1, 1]
+    param_grid_lgbm = {
+        'max_iter' : max_iter,
+        'max_leaf_nodes' : max_leaf_nodes,
+        'max_depth' : max_depth,
+        'learning_rate' : learning_rate
+    }
     
     # Saving best winner models from grid searches
     rf_winner = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x, y = y)
     gb_winner = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x, y = y)
-    lr_winner = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_scaled, y = y)
-    rf_ko = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x_ko, y = y_ko)
-    gb_ko = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x_ko, y = y_ko)
-    lr_ko = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_ko_scaled, y = y_ko)
-    rf_sub = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x_sub, y = y_sub)
-    gb_sub = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x_sub, y = y_sub)
-    lr_sub = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_sub_scaled, y = y_sub)
+    lgbm_winner = create_grid_search(HistGradientBoostingClassifier(random_state = 0), param_grid_lgbm, cv = 10, x = x, y = y)
+    # lr_winner = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_scaled, y = y)
+    # rf_ko = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x_ko, y = y_ko)
+    # gb_ko = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x_ko, y = y_ko)
+    # lr_ko = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_ko_scaled, y = y_ko)
+    # rf_sub = create_grid_search(RandomForestClassifier(random_state = 0, class_weight = 'balanced'), param_grid_rf, cv = 10, x = x_sub, y = y_sub)
+    # gb_sub = create_grid_search(GradientBoostingClassifier(random_state = 0), param_grid_gb, cv = 10, x = x_sub, y = y_sub)
+    # lr_sub = create_grid_search(LogisticRegression(random_state = 0, class_weight = 'balanced', max_iter = 500), param_grid_lr, cv = 10, x = x_sub_scaled, y = y_sub)
 
     # Filtering out fights with UFC newcomers
     this_weeks_fights = this_weeks_fights[this_weeks_fights.slpm_2 + this_weeks_fights.sapm_2 != 0]
@@ -272,13 +285,14 @@ def this_weeks_predictions(this_weeks_fights):
 
     this_weeks_fights['Prediction_RF_Winner'] = rf_winner.predict_proba(x_data_pred)[:, 1]
     this_weeks_fights['Prediction_GB_Winner'] = gb_winner.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_LR_Winner'] = lr_winner.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_RF_SUB'] = rf_sub.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_GB_SUB'] = gb_sub.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_LR_SUB'] = lr_sub.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_RF_KO'] = rf_ko.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_GB_KO'] = gb_ko.predict_proba(x_data_pred)[:, 1]
-    this_weeks_fights['Prediction_LR_KO'] = lr_ko.predict_proba(x_data_pred)[:, 1]
+    this_weeks_fights['Prediction_LGBM_Winner'] = lgbm_winner.predict_proba(x_data_pred)[:, 1]
+    # this_weeks_fights['Prediction_LR_Winner'] = lr_winner.predict_proba(x_data_pred)[:, 1]
+    # this_weeks_fights['Prediction_RF_SUB'] = rf_sub.predict_proba(x_data_pred)[:, 1]
+    # this_weeks_fights['Prediction_GB_SUB'] = gb_sub.predict_proba(x_data_pred)[:, 1]
+    # this_weeks_fights['Prediction_LR_SUB'] = lr_sub.predict_proba(x_data_pred)[:, 1]
+    # this_weeks_fights['Prediction_RF_KO'] = rf_ko.predict_proba(x_data_pred)[:, 1]
+    # this_weeks_fights['Prediction_GB_KO'] = gb_ko.predict_proba(x_data_pred)[:, 1]
+    # this_weeks_fights['Prediction_LR_KO'] = lr_ko.predict_proba(x_data_pred)[:, 1]
 
     # Saving date and predicted data
     this_weeks_fights['Date'] = dt.date.today()
