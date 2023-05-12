@@ -21,6 +21,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.experimental import enable_hist_gradient_boosting
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
@@ -364,6 +365,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
         # Getting fighter names
         names_string = re.sub(flag_regex, '', row.Scheduled)
         names_split = names_string.split()
+        print(names_split)
         if len(names_split) == 5:
             fighter_2 = names_split[0] + ' ' + names_split[1][:-2]
             # Splitting middle part to get fighter 1 first name
@@ -371,36 +373,55 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
             split = re.findall('[A-Z][^A-Z]*', need_to_split)
             fighter_1 = split[1] + ' ' + names_split[-1]
         else:
-            # Case where first name is three names
-            if len(re.findall('[A-Z][^A-Z]*', names_split[2])) > 1:
-                need_to_split = names_split[2]
+            # Case where first name is two names
+            try:
+                need_to_split = names_split[1]
                 split = re.findall('[A-Z][^A-Z]*', need_to_split)
-                fighter_2 = names_split[0] + ' ' + names_split[1] + ' ' + split[0]
-                # Case where second name is three names
-                if len(re.findall('[A-Z][^A-Z]*', names_split[6])) > 1:
-                    need_to_split = names_split[4]
+                fighter_2 = names_split[0] + ' ' + split[0]
+                if re.findall('[A-Z][^A-Z]*', names_split[1])[1][1] == '.':
+                    # Case where second name is three names
+                    if len(re.findall('[A-Z][^A-Z]*', names_split[2])) > 1:
+                        need_to_split = names_split[2]
+                        split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                        fighter_1 = split[1] + ' ' + names_split[3] + ' ' + names_split[-1]
+            except:
+                # Case where first name is three names
+                if len(re.findall('[A-Z][^A-Z]*', names_split[2])) > 1:
+                    need_to_split = names_split[2]
                     split = re.findall('[A-Z][^A-Z]*', need_to_split)
-                    fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[-1]
-                # Case where second name is four names
+                    fighter_2 = names_split[0] + ' ' + names_split[1] + ' ' + split[0]
+                    # Case where second name is three names
+                    if len(re.findall('[A-Z][^A-Z]*', names_split[6])) > 1:
+                        need_to_split = names_split[4]
+                        split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                        fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[-1]
+                    # Case where second name is four names
+                    else:
+                        need_to_split = names_split[4]
+                        split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                        fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[6] + ' ' + names_split[-1]
+                # Case where first name is four names
                 else:
-                    need_to_split = names_split[4]
+                    need_to_split = names_split[3]
                     split = re.findall('[A-Z][^A-Z]*', need_to_split)
-                    fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[6] + ' ' + names_split[-1]
-            # Case where first name is four names
-            else:
-                need_to_split = names_split[3]
-                split = re.findall('[A-Z][^A-Z]*', need_to_split)
-                fighter_2 = names_split[0] + ' ' + names_split[1] + ' ' + names_split[2] + ' ' + split[0]
-                # Case where second name is three names
-                if len(re.findall('[A-Z][^A-Z]*', names_split[7])) > 1:
-                    need_to_split = names_split[4]
-                    split = re.findall('[A-Z][^A-Z]*', need_to_split)
-                    fighter_1 = split[1] + ' ' + names_split[6] + ' ' + names_split[-1]
-                # Case where second name is four names
-                else:
-                    need_to_split = names_split[5]
-                    split = re.findall('[A-Z][^A-Z]*', need_to_split)
-                    fighter_1 = split[1] + ' ' + names_split[6] + ' ' + names_split[7] + ' ' + names_split[-1]
+                    fighter_2 = names_split[0] + ' ' + names_split[1] + ' ' + names_split[2] + ' ' + split[0]
+                    # Case where second name is two names
+                    try:
+                        if re.findall('[A-Z][^A-Z]*', names_split[-2])[1][1] == '.':
+                            need_to_split = names_split[-3]
+                            split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                            fighter_1 = split[1] +  ' ' + names_split[-1]
+                    except:
+                        # Case where second name is three names
+                        if len(re.findall('[A-Z][^A-Z]*', names_split[7])) > 1:
+                            need_to_split = names_split[4]
+                            split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                            fighter_1 = split[1] + ' ' + names_split[6] + ' ' + names_split[-1]
+                        # Case where second name is four names
+                        else:
+                            need_to_split = names_split[5]
+                            split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                            fighter_1 = split[1] + ' ' + names_split[6] + ' ' + names_split[7] + ' ' + names_split[-1]
         # Getting fighter odds
         ml_string = row['Unnamed: 3']
         if len(ml_string) == 8:
@@ -671,7 +692,7 @@ def calculate_best_bet_construct_gb():
         profit_df['Fights_2'] = profit_df.wins_2 + profit_df.losses_2
         test = profit_df[(profit_df.Fights_1 > num_fights) | (profit_df.Fights_2 > num_fights)]
         results = test.Bet_Result.sum()
-        print(f'For a {num_fights} fight minimum, the model returns {results}')
+        print(f'GB - For a {num_fights} fight minimum, the model returns {results}')
         if results > best_profit:
             best_fight_number = num_fights
         if results > best_profit:
@@ -680,6 +701,27 @@ def calculate_best_bet_construct_gb():
     return best_diff, best_fight_number
 
 def calculate_best_bet_construct_lgbm():
+
+    # Calculating straight bet results
+    def calculate_straight_internal(row):
+        # Calculating Payoff
+        if row.Predicted_Result_LGBM == 1:
+            if row.Fighter_1_Odds>0:
+                payoff = (row.Fighter_1_Odds/100)*row.Bet
+            else:
+                payoff = row.Bet/((abs(row.Fighter_1_Odds)/100))
+        else:
+            if row.Fighter_2_Odds>0:
+                payoff = (row.Fighter_2_Odds/100)*row.Bet
+            else:
+                payoff = row.Bet/((abs(row.Fighter_2_Odds)/100))
+        # Calculating Bet Result
+        if row.Predicted_Result_LGBM == row.result_y:
+            bet_result = payoff
+        else:
+            bet_result = -(row.Bet)
+        
+        return bet_result
 
     # Joining predictions to table w/ results and getting result
     predictions = pd.read_csv('mma_data_predictions.csv', index_col = 0)
@@ -691,10 +733,14 @@ def calculate_best_bet_construct_lgbm():
     # Winner results
     merged['Predicted_Result_RF'] = merged.Prediction_RF_Winner.apply(lambda x: 1 if x > 0.5 else 0)
     merged['Predicted_Result_GB'] = merged.Prediction_GB_Winner.apply(lambda x: 1 if x > 0.5 else 0)
+    merged['Predicted_Result_LGBM'] = merged.Prediction_LGBM_Winner.apply(lambda x: 1 if x > 0.5 else 0)
     # Joining to odds df
     odds_data = odds_data[['fighter_1', 'fighter_2', 'Fighter_1_Odds', 'Fighter_2_Odds']]
     profit_df = merged.merge(odds_data, on = ['fighter_1', 'fighter_2'])
     profit_df = profit_df[(profit_df.Fighter_1_Odds!=0) & (profit_df.Fighter_2_Odds!=0)]
+    # Calculating results
+    profit_df['Bet'] = 100
+    profit_df['Bet_Result'] = profit_df.apply(calculate_straight_internal, axis = 1)
 
     # Determining best bet construct
 
@@ -717,21 +763,21 @@ def calculate_best_bet_construct_lgbm():
 
 ##########SCRIPT##########
 
-# Filling in odds of recent fights
-fill_odds()
+# # Filling in odds of recent fights
+# fill_odds()
 
-# Determining best bet construct
+# # Determining best bet construct
 best_diff, best_fight_number = calculate_best_bet_construct_gb()
 best_fight_number_lgbm = calculate_best_bet_construct_lgbm()
 
-# Appending this week's fight data to existing dataset
+# # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
-append_fight_data(this_weeks_fights)
+# append_fight_data(this_weeks_fights)
 
-# Training models & using it to predict fights
+# # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
-append_predictions(this_weeks_predictions)
+# append_predictions(this_weeks_predictions)
 
-# Calculating bets 
+# # Calculating bets 
 this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number, best_fight_number_lgbm = best_fight_number_lgbm)
 append_bets(this_weeks_bets)
