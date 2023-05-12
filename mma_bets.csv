@@ -1,41 +1,53 @@
-,Fighter_1,Fighter_2,Fighter_1_Odds,Fighter_2_Odds,Prediction_GB_Winner,Bet_GB,Bet_LGBM
-0,Danaa Batgerel,Brady Hiestand,-143.0,110.0,0.0,No bet,No bet
-1,Karine Silva,Priscila Cachoeira,-180.0,150.0,0.0,No bet,No bet
-2,Mohammed Usman,Junior Tafa,100.0,-120.0,0.0,No bet,No bet
-3,Karol Rosa,Norma Dumont,105.0,-125.0,0.0,No bet,No bet
-4,Rani Yahya,Montel Jackson,470.0,-650.0,0.3219872833354154,Bet 100 on Rani Yahya,No bet
-5,Rick Glenn,Christos Giagos,-161.0,125.0,0.6312918373943912,No bet,No bet
-6,Jeremiah Wells,Matthew Semelsberger,-105.0,-118.0,0.0,No bet,No bet
-7,Iasmin Lucindo,Brogan Walker,-357.0,272.0,0.0,No bet,No bet
-8,Bobby Green,Jared Gordon,-275.0,220.0,0.4446427936351408,Bet 100 on Jared Gordon,No bet
-9,Brad Tavares,Bruno Silva,-164.0,133.0,0.6245993242979493,No bet,No bet
-10,Sergei Pavlovich,Curtis Blaydes,136.0,-165.0,0.0,No bet,No bet
-11,Hailey Cowan,Jamey-Lyn Horth,132.0,-160.0,0.0,No bet,No bet
-12,Marcus McGhee,Journey Newson,145.0,-175.0,0.0,No bet,No bet
-13,Stephanie Egger,Irina Alekseeva,-325.0,255.0,0.0,No bet,No bet
-14,Martin Buday,Jake Collier,-130.0,108.0,0.6682299189848215,Bet 100 on Martin Buday,No bet
-15,Trey Waters,Josh Quinlan,165.0,-200.0,0.3217993298180528,No bet,No bet
-16,Marcos Rogerio De Lima,Waldo Cortes Acosta,-180.0,150.0,0.4725431829777043,Bet 100 on Waldo Cortes Acosta,No bet
-17,Julian Erosa,Fernando Padilla,-150.0,125.0,0.0,No bet,No bet
-18,Cody Brundage,Rodolfo Vieira,195.0,-250.0,0.4475835016048214,Bet 100 on Cody Brundage,No bet
-19,Caio Borralho,Michal Oleksiejczuk,-350.0,275.0,0.5524164983951786,Bet 100 on Michal Oleksiejczuk,No bet
-20,Song Yadong,Ricky Simon,108.0,-130.0,0.6101934025583096,Bet 100 on Song Yadong,No bet
-21,Cody Durden,Charles Johnson,116.0,-140.0,0.6256685297932083,Bet 100 on Cody Durden,No bet
-22,Hailey Cowan,Jamey-Lyn Horth,136.0,-165.0,0.0,No bet,No bet
-23,Marcus McGhee,Journey Newson,125.0,-149.0,0.0,No bet,No bet
-24,Stephanie Egger,Irina Alekseeva,-325.0,255.0,0.0,No bet,No bet
-25,Natan Levy,Pete Rodriguez,-260.0,210.0,0.0,No bet,No bet
-26,Claudio Ribeiro,Joseph Holmes,-180.0,150.0,0.4323228509589817,Bet 100 on Joseph Holmes,No bet
-27,Rafael Estevam,Zhalgas Zhumagulov,-195.0,160.0,0.0,No bet,No bet
-28,Phillip Hawes,Ikram Aliskerov,160.0,-192.0,0.6535057969725183,Bet 100 on Phillip Hawes,No bet
-29,Parker Porter,Braxton Smith,-170.0,140.0,0.0,No bet,No bet
-30,Marina Rodriguez,Virna Jandiroba,-135.0,112.0,0.6122053389256793,No bet,No bet
-31,Rolando Bedoya,Kalinn Williams,275.0,-350.0,0.0,No bet,No bet
-32,Kennedy Nzechukwu,Devin Clark,-182.0,150.0,0.6020995279351,No bet,No bet
-33,Drew Dober,Matt Frevola,-220.0,180.0,0.6277481501879878,No bet,No bet
-34,Kron Gracie,Charles Jourdain,150.0,-180.0,0.5935586799212914,Bet 100 on Kron Gracie,No bet
-35,Movsar Evloev,Diego Lopes,-850.0,575.0,0.675457391404419,Bet 100 on Diego Lopes,No bet
-36,Jessica Andrade,Yan Xiaonan,-182.0,150.0,0.6149888900756355,No bet,No bet
-37,Gilbert Burns,Belal Muhammad,-130.0,108.0,0.3968650229280498,Bet 100 on Belal Muhammad,No bet
-38,Aljamain Sterling,Henry Cejudo,-105.0,-118.0,0.6366674807019336,Bet 100 on Aljamain Sterling,No bet
-39,Daniel Santos,Johnny Munoz,-200.0,165.0,0.0,No bet,No bet
+,Fighter_1,Fighter_2,Fighter_1_Odds,Fighter_2_Odds,Prediction_GB_Winner,Bet_GB,Bet_LGBM,Prediction_LGBM_Winner
+0,Danaa Batgerel,Brady Hiestand,-143.0,110.0,0.0,No bet,No Bet,
+1,Karine Silva,Priscila Cachoeira,-180.0,150.0,0.0,No bet,No Bet,
+2,Mohammed Usman,Junior Tafa,100.0,-120.0,0.0,No bet,No Bet,
+3,Karol Rosa,Norma Dumont,105.0,-125.0,0.0,No bet,No Bet,
+4,Rani Yahya,Montel Jackson,470.0,-650.0,0.3219872833354154,Bet 100 on Rani Yahya,No Bet,
+5,Rick Glenn,Christos Giagos,-161.0,125.0,0.6312918373943912,No bet,No Bet,
+6,Jeremiah Wells,Matthew Semelsberger,-105.0,-118.0,0.0,No bet,No Bet,
+7,Iasmin Lucindo,Brogan Walker,-357.0,272.0,0.0,No bet,No Bet,
+8,Bobby Green,Jared Gordon,-275.0,220.0,0.4446427936351408,Bet 100 on Jared Gordon,No Bet,
+9,Brad Tavares,Bruno Silva,-164.0,133.0,0.6245993242979493,No bet,No Bet,
+10,Sergei Pavlovich,Curtis Blaydes,136.0,-165.0,0.0,No bet,No Bet,
+11,Hailey Cowan,Jamey-Lyn Horth,132.0,-160.0,0.0,No bet,No Bet,
+12,Marcus McGhee,Journey Newson,145.0,-175.0,0.0,No bet,No Bet,
+13,Stephanie Egger,Irina Alekseeva,-325.0,255.0,0.0,No bet,No Bet,
+14,Martin Buday,Jake Collier,-130.0,108.0,0.6682299189848215,Bet 100 on Martin Buday,No Bet,
+15,Trey Waters,Josh Quinlan,165.0,-200.0,0.3217993298180528,No bet,No Bet,
+16,Marcos Rogerio De Lima,Waldo Cortes Acosta,-180.0,150.0,0.4725431829777043,Bet 100 on Waldo Cortes Acosta,No Bet,
+17,Julian Erosa,Fernando Padilla,-150.0,125.0,0.0,No bet,No Bet,
+18,Cody Brundage,Rodolfo Vieira,195.0,-250.0,0.4475835016048214,Bet 100 on Cody Brundage,No Bet,
+19,Caio Borralho,Michal Oleksiejczuk,-350.0,275.0,0.5524164983951786,Bet 100 on Michal Oleksiejczuk,No Bet,
+20,Song Yadong,Ricky Simon,108.0,-130.0,0.6101934025583096,Bet 100 on Song Yadong,No Bet,
+21,Cody Durden,Charles Johnson,116.0,-140.0,0.6256685297932083,Bet 100 on Cody Durden,No Bet,
+22,Hailey Cowan,Jamey-Lyn Horth,136.0,-165.0,0.0,No bet,No Bet,
+23,Marcus McGhee,Journey Newson,125.0,-149.0,0.0,No bet,No Bet,
+24,Stephanie Egger,Irina Alekseeva,-325.0,255.0,0.0,No bet,No Bet,
+25,Natan Levy,Pete Rodriguez,-260.0,210.0,0.0,No bet,No Bet,
+26,Claudio Ribeiro,Joseph Holmes,-180.0,150.0,0.4323228509589817,Bet 100 on Joseph Holmes,No Bet,
+27,Rafael Estevam,Zhalgas Zhumagulov,-195.0,160.0,0.0,No bet,No Bet,
+28,Phillip Hawes,Ikram Aliskerov,160.0,-192.0,0.6535057969725183,Bet 100 on Phillip Hawes,No Bet,
+29,Parker Porter,Braxton Smith,-170.0,140.0,0.0,No bet,No Bet,
+30,Marina Rodriguez,Virna Jandiroba,-135.0,112.0,0.6122053389256793,No bet,No Bet,
+31,Rolando Bedoya,Kalinn Williams,275.0,-350.0,0.0,No bet,No Bet,
+32,Kennedy Nzechukwu,Devin Clark,-182.0,150.0,0.6020995279351,No bet,No Bet,
+33,Drew Dober,Matt Frevola,-220.0,180.0,0.6277481501879878,No bet,No Bet,
+34,Kron Gracie,Charles Jourdain,150.0,-180.0,0.5935586799212914,Bet 100 on Kron Gracie,No Bet,
+35,Movsar Evloev,Diego Lopes,-850.0,575.0,0.675457391404419,Bet 100 on Diego Lopes,No Bet,
+36,Jessica Andrade,Yan Xiaonan,-182.0,150.0,0.6149888900756355,No bet,No Bet,
+37,Gilbert Burns,Belal Muhammad,-130.0,108.0,0.3968650229280498,Bet 100 on Belal Muhammad,No Bet,
+38,Aljamain Sterling,Henry Cejudo,-105.0,-118.0,0.6366674807019336,Bet 100 on Aljamain Sterling,No Bet,
+39,Daniel Santos,Johnny Munoz,-200.0,165.0,0.0,No bet,No Bet,
+40,Tainara Lisboa,Jessica-Rose Clark,-120.0,100.0,0.0,No bet,No bet,0.0
+41,Gabriel Green,Bryan Battle,-135.0,112.0,0.3568562941762652,Bet 100 on Bryan Battle,No bet,0.0
+42,Ji Yeon Kim,Mandy Bohm,-220.0,180.0,0.6780260231251498,No bet,No bet,0.0
+43,Cody Stamann,Douglas Silva De Andrade,-160.0,132.0,0.655476017666829,No bet,Bet 100 on Cody Stamann,0.6066278934737753
+44,Karl Williams,Chase Sherman,-400.0,300.0,0.7195653939981685,No bet,Bet 100 on Karl Williams,0.609053354575593
+45,Matt Brown,Court McGee,175.0,-215.0,0.547480948865051,Bet 100 on Matt Brown,Bet 100 on Matt Brown,0.5659862232450004
+46,Tim Means,Alex Morono,180.0,-220.0,0.6214720964690232,Bet 100 on Tim Means,Bet 100 on Tim Means,0.5594861258447745
+47,Ihor Potieria,Carlos Ulberg,325.0,-425.0,0.3977453364315201,Bet 100 on Ihor Potieria,Bet 100 on Carlos Ulberg,0.3849360939830566
+48,Ian Garry,Daniel Rodriguez,-303.0,240.0,0.574452626304168,Bet 100 on Daniel Rodriguez,No bet,0.0
+49,Anthony Smith,Johnny Walker,-110.0,-115.0,0.4377819326238794,No bet,Bet 100 on Johnny Walker,0.4566763854857466
+50,Jailton Almeida,Jairzinho Rozenstruik,-550.0,400.0,0.5172882224674483,Bet 100 on Jairzinho Rozenstruik,No bet,0.0
+51,Natan Levy,Pete Rodriguez,-250.0,200.0,0.574452626304168,Bet 100 on Pete Rodriguez,No bet,0.0

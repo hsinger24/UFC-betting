@@ -365,7 +365,6 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
         # Getting fighter names
         names_string = re.sub(flag_regex, '', row.Scheduled)
         names_split = names_string.split()
-        print(names_split)
         if len(names_split) == 5:
             fighter_2 = names_split[0] + ' ' + names_split[1][:-2]
             # Splitting middle part to get fighter 1 first name
@@ -494,9 +493,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
                 continue
         except:
             continue
-    odds_df['Bet_LGBM'] = odds_df.apply(calculate_bets_lgbm, diff = best_diff, axis = 1)
-
-    odds_df = odds_df.iloc[:, :7]
+    odds_df['Bet_LGBM'] = odds_df.apply(calculate_bets_lgbm, axis = 1)
 
     return odds_df
 
@@ -763,21 +760,21 @@ def calculate_best_bet_construct_lgbm():
 
 ##########SCRIPT##########
 
-# # Filling in odds of recent fights
-# fill_odds()
+# Filling in odds of recent fights
+fill_odds()
 
-# # Determining best bet construct
+# Determining best bet construct
 best_diff, best_fight_number = calculate_best_bet_construct_gb()
 best_fight_number_lgbm = calculate_best_bet_construct_lgbm()
 
-# # Appending this week's fight data to existing dataset
+# Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
-# append_fight_data(this_weeks_fights)
+append_fight_data(this_weeks_fights)
 
-# # Training models & using it to predict fights
+# Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
-# append_predictions(this_weeks_predictions)
+append_predictions(this_weeks_predictions)
 
-# # Calculating bets 
+# Calculating bets 
 this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number, best_fight_number_lgbm = best_fight_number_lgbm)
 append_bets(this_weeks_bets)
