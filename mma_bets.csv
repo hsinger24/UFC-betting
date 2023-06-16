@@ -51,10 +51,10 @@
 49,Anthony Smith,Johnny Walker,-110.0,-115.0,0.4377819326238794,No bet,Bet 100 on Johnny Walker,0.4566763854857466
 50,Jailton Almeida,Jairzinho Rozenstruik,-550.0,400.0,0.5172882224674483,Bet 100 on Jairzinho Rozenstruik,No bet,0.0
 51,Natan Levy,Pete Rodriguez,-250.0,200.0,0.574452626304168,Bet 100 on Pete Rodriguez,No bet,0.0
-52,Takashi Sato,Themba Gorimbo,100.0,-120.0,0.48318170716934905,No bet,Bet 100 on Themba Gorimbo,0.4426527308282736
+52,Takashi Sato,Themba Gorimbo,100.0,-120.0,0.483181707169349,No bet,Bet 100 on Themba Gorimbo,0.4426527308282736
 53,Natalia Silva,Victoria Leonardo,-1000.0,625.0,0.7051819589694133,Bet 100 on Victoria Leonardo,Bet 100 on Natalia Silva,0.7071495462609526
 54,Chase Hooper,Nick Fiore,110.0,-143.0,0.5453260713306737,Bet 100 on Chase Hooper,Bet 100 on Chase Hooper,0.5690702242711911
-55,Ilir Latifi,Rodrigo Nascimento,155.0,-190.0,0.36215695382310537,No bet,Bet 100 on Rodrigo Nascimento,0.3705763010678363
+55,Ilir Latifi,Rodrigo Nascimento,155.0,-190.0,0.3621569538231053,No bet,Bet 100 on Rodrigo Nascimento,0.3705763010678363
 56,Orion Cosce,Gilbert Urbina,-115.0,-105.0,0.594452503600684,Bet 100 on Orion Cosce,No bet,0.0
 57,Karolina Kowalkiewicz,Vanessa Demopoulos,-135.0,112.0,0.6644354444850912,Bet 100 on Karolina Kowalkiewicz,Bet 100 on Karolina Kowalkiewicz,0.6565820691817784
 58,Diego Ferreira,Michael Johnson,-160.0,132.0,0.6427573472645339,No bet,Bet 100 on Diego Ferreira,0.6244113132225979
@@ -62,3 +62,28 @@
 60,Emily Ducote,Lupita Godinez,132.0,-160.0,0.594924589664774,Bet 100 on Emily Ducote,Bet 100 on Emily Ducote,0.5924802995270697
 61,Edmen Shahbazyan,Anthony Hernandez,170.0,-210.0,0.5618483959735245,Bet 100 on Edmen Shahbazyan,Bet 100 on Edmen Shahbazyan,0.5701994338352211
 62,Angela Hill,Mackenzie Dern,150.0,-180.0,0.3462161905105673,No bet,Bet 100 on Mackenzie Dern,0.330824781065033
+63,Maria Oliveira,Diana Belbita,-105.0,-115.0,0.5551614085613935,No bet,Bet 100 on Maria Oliveira,0.6155406345449759
+64,Stephen Erceg,David Dvorak,225.0,-280.0,0.0,No bet,No bet,0.0
+65,Kyle Nelson,Blake Bilder,210.0,-270.0,0.375006155301968,Bet 100 on Kyle Nelson,Bet 100 on Blake Bilder,0.2869684551091022
+66,Qileng Aori,Aiemann Zahabi,-120.0,100.0,0.3920758514557414,Bet 100 on Aiemann Zahabi,Bet 100 on Aiemann Zahabi,0.3594479273160073
+67,Jasmine Jasudavicius,Miranda Maverick,240.0,-300.0,0.2766856441862101,No bet,Bet 100 on Miranda Maverick,0.2285573500784706
+68,Nassourdine Imavov,Chris Curtis,-155.0,128.0,0.5806339030473483,No bet,Bet 100 on Nassourdine Imavov,0.6074207027515474
+69,Marc- Barriault,Eryk Anders,-135.0,112.0,0.559017103941117,No bet,Bet 100 on Marc- Barriault,0.6191285263498766
+70,Dan Ige,Nate Landwehr,-260.0,210.0,0.6044943142852575,Bet 100 on Nate Landwehr,Bet 100 on Dan Ige,0.5823320650227257
+71,Mike Malott,Adam Fugitt,-215.0,175.0,0.597677856115907,No bet,Bet 100 on Mike Malott,0.6422384005364287
+72,Charles Oliveira,Beneil Dariush,125.0,-150.0,0.5551614085613935,Bet 100 on Charles Oliveira,Bet 100 on Charles Oliveira,0.6155406345449759
+73,Amanda Nunes,Irene Aldana,-325.0,255.0,0.6251982611047371,Bet 100 on Irene Aldana,Bet 100 on Amanda Nunes,0.6536644785963953
+74,Zac Pauga,Modestas Bukauskas,160.0,-195.0,0.6435584482710731,Bet 100 on Zac Pauga,Bet 100 on Zac Pauga,0.6426738351227211
+75,Dan Arguetta,Ronnie Lawrence,155.0,-190.0,0.6588724576520731,Bet 100 on Dan Arguetta,No bet,0.0
+76,Tereza Bleda,Gabriella Fernandes,-240.0,195.0,0.4782058184079939,Bet 100 on Gabriella Fernandes,Bet 100 on Gabriella Fernandes,0.470165307009324
+77,Carlos Hernandez,Denys Bondar,104.0,-125.0,0.5217941815920061,No bet,Bet 100 on Carlos Hernandez,0.529834692990676
+78,Kyung Ho Kang,Cristian Quinonez,125.0,-150.0,0.3917492477480979,No bet,Bet 100 on Cristian Quinonez,0.44446291372958174
+79,Jimmy Flick,Alessandro Costa,215.0,-270.0,0.5510770917234433,Bet 100 on Jimmy Flick,Bet 100 on Jimmy Flick,0.5497428783337635
+80,Nicolas Dalby,Muslim Salikhov,160.0,-195.0,0.5826478768485818,Bet 100 on Nicolas Dalby,Bet 100 on Nicolas Dalby,0.5701067232385234
+81,Manuel Torres,Nikolas Motta,-190.0,155.0,0.6588724576520731,No bet,Bet 100 on Manuel Torres,0.6393708903890657
+82,Pat Sabatini,Lucas Almeida,-195.0,160.0,0.6089036840629799,No bet,Bet 100 on Pat Sabatini,0.6229279565916456
+83,Armen PetrosyanA. Petrosyan Petrosyan,Christian Leroy Duncan,125.0,-150.0,0.5534593796429316,Bet 100 on Armen PetrosyanA. Petrosyan Petrosyan,No bet,0.0
+84,Arman Tsarukyan,Joaquim Silva,-1110.0,675.0,0.6973967676036076,Bet 100 on Joaquim Silva,Bet 100 on Arman Tsarukyan,0.6791437631016158
+85,Marvin Vettori,Jared Cannonier,-120.0,100.0,0.6068025413204083,Bet 100 on Marvin Vettori,Bet 100 on Marvin Vettori,0.6226514565942162
+86,Zhalgas Zhumagulov,Felipe Bunes,-165.0,136.0,0.0,No bet,No bet,0.0
+87,Raoni Barcelos,Miles Johns,-230.0,185.0,0.0,No bet,No bet,0.0
