@@ -422,7 +422,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
                             split = re.findall('[A-Z][^A-Z]*', need_to_split)
                             fighter_1 = split[1] + ' ' + names_split[6] + ' ' + names_split[7] + ' ' + names_split[-1]
         # Getting fighter odds
-        ml_string = row['Unnamed: 3']
+        ml_string = row['Best Odds']
         if len(ml_string) == 8:
             ml_fighter_2 = ml_string[:4]
             ml_fighter_1 = ml_string[-4:]
