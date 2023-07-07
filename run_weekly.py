@@ -346,7 +346,7 @@ def calculate_bets_lgbm(row):
 
 def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_number_lgbm):
     # Instantiating webdriver
-    driver = webdriver.Chrome(ChromeDriverManager().install())
+    driver = webdriver.Safari()
     driver.get('https://www.actionnetwork.com/ufc/odds')
 
     # Getting odds table and formatting
@@ -377,7 +377,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
                 need_to_split = names_split[1]
                 split = re.findall('[A-Z][^A-Z]*', need_to_split)
                 fighter_2 = names_split[0] + ' ' + split[0]
-                if re.findall('[A-Z][^A-Z]*', names_split[1])[1][1] == '.':
+                if re.findall('[A-Z][^A-Z]*', names_split[1])[1][1] == '.': 
                     # Case where second name is three names
                     if len(re.findall('[A-Z][^A-Z]*', names_split[2])) > 1:
                         need_to_split = names_split[2]
@@ -389,16 +389,29 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
                     need_to_split = names_split[2]
                     split = re.findall('[A-Z][^A-Z]*', need_to_split)
                     fighter_2 = names_split[0] + ' ' + names_split[1] + ' ' + split[0]
-                    # Case where second name is three names
-                    if len(re.findall('[A-Z][^A-Z]*', names_split[6])) > 1:
-                        need_to_split = names_split[4]
-                        split = re.findall('[A-Z][^A-Z]*', need_to_split)
-                        fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[-1]
-                    # Case where second name is four names
-                    else:
-                        need_to_split = names_split[4]
-                        split = re.findall('[A-Z][^A-Z]*', need_to_split)
-                        fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[6] + ' ' + names_split[-1]
+                    # Case where second name is two names
+                    try:
+                        if len(names_split) == 7:
+                            if re.findall('[A-Z][^A-Z]*', names_split[-2])[1][1] == '.':
+                                need_to_split = names_split[4]
+                                split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                                fighter_1 = split[1] + ' ' + names_split[-1]
+                        else:
+                            if re.findall('[A-Z][^A-Z]*', names_split[-2])[1][1] == '.':
+                                need_to_split = names_split[3]
+                                split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                                fighter_1 = split[1] + ' ' + names_split[-1]
+                    except:
+                        # Case where second name is three names
+                        if len(re.findall('[A-Z][^A-Z]*', names_split[6])) > 1:
+                            need_to_split = names_split[4]
+                            split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                            fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[-1]
+                        # Case where second name is four names
+                        else:
+                            need_to_split = names_split[4]
+                            split = re.findall('[A-Z][^A-Z]*', need_to_split)
+                            fighter_1 = split[1] + ' ' + names_split[5] + ' ' + names_split[6] + ' ' + names_split[-1]
                 # Case where first name is four names
                 else:
                     need_to_split = names_split[3]
@@ -769,11 +782,11 @@ best_fight_number_lgbm = calculate_best_bet_construct_lgbm()
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
-append_fight_data(this_weeks_fights)
+# append_fight_data(this_weeks_fights)
 
 # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
-append_predictions(this_weeks_predictions)
+# append_predictions(this_weeks_predictions)
 
 # Calculating bets 
 this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number, best_fight_number_lgbm = best_fight_number_lgbm)
