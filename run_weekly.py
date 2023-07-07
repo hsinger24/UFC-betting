@@ -471,14 +471,14 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
         prediction_df['FUZZ_1'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_1))
         prediction_df['FUZZ_2'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_2))
         try:
-            row = prediction_df.loc[(prediction_df.FUZZ_1 > 50) | (prediction_df.FUZZ_2 > 50)]
-            gb = row['Prediction_GB_Winner'].values[0]
-            if row['FUZZ_1'].values[0] > 50:
+            correct_row = prediction_df.loc[(prediction_df.FUZZ_1 > 50) | (prediction_df.FUZZ_2 > 50)].tail(1)
+            gb = correct_row['Prediction_GB_Winner'].values[0]
+            if correct_row['FUZZ_1'].values[0] > 50:
                 pass
             else:
                 gb = 1.0 - gb
-            fights_1 = row['wins_1'].values[0] + row['losses_1'].values[0]
-            fights_2 = row['wins_2'].values[0] + row['losses_2'].values[0]
+            fights_1 = correct_row['wins_1'].values[0] + correct_row['losses_1'].values[0]
+            fights_2 = correct_row['wins_2'].values[0] + correct_row['losses_2'].values[0]
             if (fights_1 > best_fight_number) | (fights_2 > best_fight_number):
                 odds_df.loc[index, 'Prediction_GB_Winner'] = gb
             else:
@@ -492,14 +492,14 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
         prediction_df['FUZZ_1'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_1))
         prediction_df['FUZZ_2'] = prediction_df.fighter_1.apply(lambda x: fuzz.ratio(x, row.Fighter_2))
         try:
-            row = prediction_df.loc[(prediction_df.FUZZ_1 > 50) | (prediction_df.FUZZ_2 > 50)]
-            gb = row['Prediction_LGBM_Winner'].values[0]
-            if row['FUZZ_1'].values[0] > 50:
+            correct_row = prediction_df.loc[(prediction_df.FUZZ_1 > 50) | (prediction_df.FUZZ_2 > 50)].tail(1)
+            gb = correct_row['Prediction_LGBM_Winner'].values[0]
+            if correct_row['FUZZ_1'].values[0] > 50:
                 pass
             else:
                 gb = 1.0 - gb
-            fights_1 = row['wins_1'].values[0] + row['losses_1'].values[0]
-            fights_2 = row['wins_2'].values[0] + row['losses_2'].values[0]
+            fights_1 = correct_row['wins_1'].values[0] + correct_row['losses_1'].values[0]
+            fights_2 = correct_row['wins_2'].values[0] + correct_row['losses_2'].values[0]
             if (fights_1 > best_fight_number_lgbm) | (fights_2 > best_fight_number_lgbm):
                 odds_df.loc[index, 'Prediction_LGBM_Winner'] = gb
             else:
