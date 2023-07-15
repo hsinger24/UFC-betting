@@ -782,11 +782,11 @@ best_fight_number_lgbm = calculate_best_bet_construct_lgbm()
 
 # Appending this week's fight data to existing dataset
 this_weeks_fights = retrieve_this_weeks_fights()
-# append_fight_data(this_weeks_fights)
+append_fight_data(this_weeks_fights)
 
 # Training models & using it to predict fights
 this_weeks_predictions = this_weeks_predictions(this_weeks_fights)
-# append_predictions(this_weeks_predictions)
+append_predictions(this_weeks_predictions)
 
 # Calculating bets 
 this_weeks_bets = bet_recommender(this_weeks_predictions, best_diff = best_diff, best_fight_number = best_fight_number, best_fight_number_lgbm = best_fight_number_lgbm)
