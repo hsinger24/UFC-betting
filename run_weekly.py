@@ -60,7 +60,7 @@ def retrieve_this_weeks_fights():
     options.add_argument('--disable-web-security')
     options.add_argument('--allow-running-insecure-content')
     options.add_argument("--disable-setuid-sandbox")
-    driver = webdriver.Chrome(ChromeDriverManager().install())
+    driver = webdriver.Safari()
     driver.get('http://ufcstats.com/statistics/events/completed')
     upcoming_card_data = pd.DataFrame(columns = ['name', 'weight', 'reach', 'age', 'slpm', 'sapm', 'td_avg', 'sub_avg', 'strk_acc', 'strk_def', 'td_acc',
                                                 'td_def', 'wins', 'losses'])
@@ -508,6 +508,8 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
             continue
     odds_df['Bet_LGBM'] = odds_df.apply(calculate_bets_lgbm, axis = 1)
 
+    driver.quit()
+
     return odds_df
 
 def append_bets(this_weeks_bets):
@@ -537,14 +539,7 @@ def fill_odds():
     data = pd.concat([data_filled, data_all_new])
 
     # Filling in odds
-    options = Options()
-    options.add_argument('--no-sandbox')
-    options.add_argument("user-data-dir=/Users/hsinger24/Library/Application Support/Google/Chrome/Default1")
-    options.add_argument("--start-maximized")
-    options.add_argument('--disable-web-security')
-    options.add_argument('--allow-running-insecure-content')
-    options.add_argument("--disable-setuid-sandbox")
-    driver = webdriver.Chrome(ChromeDriverManager().install())
+    driver = webdriver.Safari()
     driver.get('https://www.bestfightodds.com/archive')
     time.sleep(1)
     for index, row in data.iterrows():
@@ -566,8 +561,10 @@ def fill_odds():
                 search_bar = driver.find_elements(By.XPATH, '//*[@id="page-content"]/form/p/input[1]')[0]
                 search_bar.send_keys(fighter_name)
                 driver.find_elements(By.XPATH, '//*[@id="page-content"]/form/p/input[2]')[0].click()
+                time.sleep(1)
                 # Clicking on fighter 1 
                 try:
+                    click_button = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="page-content"]/table[1]/tbody/tr[1]/td[2]/a')))
                     driver.find_elements(By.XPATH, '//*[@id="page-content"]/table[1]/tbody/tr[1]/td[2]/a')[0].click()
                     time.sleep(1)
                 except:
@@ -595,14 +592,7 @@ def fill_odds():
         except:
             driver.quit()
             time.sleep(1)
-            options = Options()
-            options.add_argument('--no-sandbox')
-            options.add_argument("user-data-dir=/Users/hsinger24/Library/Application Support/Google/Chrome/Default1")
-            options.add_argument("--start-maximized")
-            options.add_argument('--disable-web-security')
-            options.add_argument('--allow-running-insecure-content')
-            options.add_argument("--disable-setuid-sandbox")
-            driver = webdriver.Chrome(ChromeDriverManager().install())
+            driver = webdriver.Safari()
             driver.get('https://www.bestfightodds.com/archive')
     data = data[(data.Fighter_1_Odds != 0) & (data.Fighter_2_Odds != 0)]
     data.dropna(subset = ['Fighter_1_Odds', 'Fighter_2_Odds'], inplace = True)
@@ -610,6 +600,8 @@ def fill_odds():
 
     # Saving updated file
     data.to_csv('mma_data_odds.csv')
+
+    driver.quit()
     
     return
 
