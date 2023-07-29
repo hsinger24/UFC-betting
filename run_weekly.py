@@ -77,7 +77,7 @@ def retrieve_this_weeks_fights():
     for i in range(7):
         del links_upcoming_card[-1]
     for i, link in enumerate(links_upcoming_card):
-        if link.text=='View\nMatchup':
+        if link.text in ['View\nMatchup', 'View Matchup  ']:
             del links_upcoming_card[i]
     num_fighters = len(links_upcoming_card)
     fighter = links_upcoming_card[0]
@@ -87,7 +87,7 @@ def retrieve_this_weeks_fights():
             links_upcoming_card = driver.find_elements(By.TAG_NAME, 'a')
             del links_upcoming_card[:4]
             for j, link in enumerate(links_upcoming_card):
-                if link.text=='View\nMatchup':
+                if link.text in ['View\nMatchup', 'View Matchup  ']:
                     del links_upcoming_card[j]
             fighter= links_upcoming_card[i]
             fighter.click() 
@@ -134,7 +134,6 @@ def retrieve_this_weeks_fights():
     final = final[(final.weight_1 != 0) & (final.weight_2 != 0)]
     print(final.tail())
     driver.quit()
-    return final
 
 def append_fight_data(this_weeks_fights):
     mma_data = pd.read_csv('mma_data.csv', index_col = 0)
