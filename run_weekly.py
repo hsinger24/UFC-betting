@@ -62,6 +62,7 @@ def retrieve_this_weeks_fights():
     options.add_argument("--disable-setuid-sandbox")
     driver = webdriver.Safari()
     driver.get('http://ufcstats.com/statistics/events/completed')
+    driver.maximize_window()
     upcoming_card_data = pd.DataFrame(columns = ['name', 'weight', 'reach', 'age', 'slpm', 'sapm', 'td_avg', 'sub_avg', 'strk_acc', 'strk_def', 'td_acc',
                                                 'td_def', 'wins', 'losses'])
 
@@ -347,6 +348,7 @@ def bet_recommender(prediction_df, best_diff, best_fight_number, best_fight_numb
     # Instantiating webdriver
     driver = webdriver.Safari()
     driver.get('https://www.actionnetwork.com/ufc/odds')
+    driver.maximize_window()
 
     # Getting odds table and formatting
     html = driver.page_source
